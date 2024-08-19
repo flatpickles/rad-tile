@@ -12,16 +12,18 @@ const Canvas: React.FC = () => {
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        // Initialize TileManager only once
-        if (!tileManagerRef.current) {
-            tileManagerRef.current = new TileManager(canvas);
-        }
-
         // Make it smoooooth
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', {
+            antialias: true,
+        }) as CanvasRenderingContext2D;
         if (ctx) {
             ctx.imageSmoothingEnabled = true;
             ctx.imageSmoothingQuality = 'high';
+        }
+
+        // Initialize TileManager only once
+        if (!tileManagerRef.current) {
+            tileManagerRef.current = new TileManager(canvas);
         }
 
         // Resize the canvas to the window size as needed

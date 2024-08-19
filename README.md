@@ -4,7 +4,6 @@ This will be a lightweight tool for easily making radial tile patterns, like the
 
 ## short todo:
 
--   snap to rotated points
 -   highlight nearest points before add
 -   equal side length mode (holding shift)
 -   escape to stop adding
@@ -21,3 +20,4 @@ This will be a lightweight tool for easily making radial tile patterns, like the
 -   mobile layout
 -   more shapes! triangles, equilateral polygons...
 -   start with a shape in the center
+-   snap relative points in progress tile

@@ -17,6 +17,7 @@ const SNAP_DISTANCE = 40;
 
 // Color constants
 const ANCHOR_COLOR = 'rgba(0, 128, 0, 1.0)';
+const ANCHOR_COLOR_ACTIVE = 'rgba(0, 216, 0, 1.0)';
 const ACTIVE_COLOR_TILE = 'rgba(128, 0, 128, 1.0)';
 const ACTIVE_COLOR_PROGRESS = 'rgba(0, 0, 128, 1.0)';
 const ACTIVE_COLOR_STROKE = 'rgba(0, 0, 0, 1.0)';
@@ -52,9 +53,17 @@ export class TileManager {
         const canvasX = (x - this.canvas.width / 2) / this.zoom;
         const canvasY = (y - this.canvas.height / 2) / this.zoom;
 
+        // Selecting also sets the hover point
+        this.hoverPoint = this.#pointOrNearestAnchor(
+            canvasX,
+            canvasY,
+            this.progressPoints.length > 0,
+        );
+
         // Start a new tile:
         if (this.progressPoints.length === 0) {
             // Find the nearest anchor point to start from
+            // todo: reuse hoverPoint here?
             const anchor = this.model.getNearestAnchor(
                 canvasX,
                 canvasY,
@@ -66,15 +75,14 @@ export class TileManager {
         }
         // Add the first corner:
         else if (this.progressPoints.length === 1) {
-            const newPoint = this.#pointOrNearestAnchor(canvasX, canvasY, true);
-            this.progressPoints.push(newPoint);
+            this.progressPoints.push(this.hoverPoint);
         }
         // Add the second corner, commit & reset:
         else if (this.progressPoints.length === 2) {
             this.model.setProgressTile(
                 this.progressPoints[0],
                 this.progressPoints[1],
-                this.#pointOrNearestAnchor(canvasX, canvasY, true),
+                this.hoverPoint,
             );
             this.model.commitProgressTile();
             this.progressPoints = [];
@@ -223,7 +231,6 @@ export class TileManager {
         }
 
         // Draw the progress OR the available anchors
-        context.fillStyle = ANCHOR_COLOR;
         const scaledHandleSize = HANDLE_SIZE / this.zoom; // constant across zoom levels
         if (this.progressPoints.length > 0 && this.hoverPoint) {
             // Draw path to hover point if there is no progress tile
@@ -236,7 +243,15 @@ export class TileManager {
                 context.lineTo(this.hoverPoint.x, this.hoverPoint.y);
                 context.stroke();
             }
+            // Draw progress points
+            context.fillStyle = ANCHOR_COLOR;
+            this.progressPoints.forEach((point) => {
+                context.beginPath();
+                context.arc(point.x, point.y, scaledHandleSize, 0, 2 * Math.PI);
+                context.fill();
+            });
             // Draw hover point
+            context.fillStyle = ANCHOR_COLOR_ACTIVE;
             context.beginPath();
             context.arc(
                 this.hoverPoint.x,
@@ -249,6 +264,11 @@ export class TileManager {
         } else {
             // Draw anchors
             this.model.anchors.forEach((anchor) => {
+                if (anchor === this.hoverPoint) {
+                    context.fillStyle = ANCHOR_COLOR_ACTIVE;
+                } else {
+                    context.fillStyle = ANCHOR_COLOR;
+                }
                 context.beginPath();
                 context.arc(
                     anchor.x,
