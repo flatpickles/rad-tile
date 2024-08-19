@@ -5,9 +5,10 @@ This will be a lightweight tool for easily making radial tile patterns, like the
 ## short todo:
 
 -   rendering while adding (new dots etc)
--   repeat around the circle
 -   highlight nearest points before add
--   no parallelograms
+-   no parallelograms (holding shift)
+-   escape to stop adding
+-   fix zooming
 
 ## long todo:
 

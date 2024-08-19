@@ -13,6 +13,16 @@ export type Tile = {
     ];
 };
 
+export function rotateTile(tile: Tile, angle: number): Point[] {
+    const rotatePoint = (point: Point, angle: number): Point => {
+        return {
+            x: point.x * Math.cos(angle) - point.y * Math.sin(angle),
+            y: point.x * Math.sin(angle) + point.y * Math.cos(angle),
+        };
+    };
+    return tile.corners.map((corner) => rotatePoint(corner, angle));
+}
+
 export class TileModel {
     anchors: Set<Point> = new Set([{ x: 0, y: 0 }]);
     tiles: Tile[] = [];

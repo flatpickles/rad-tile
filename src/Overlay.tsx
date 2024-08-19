@@ -7,7 +7,7 @@ interface OverlayProps {
 
 const Overlay: React.FC<OverlayProps> = ({ rectSize, setRectSize }) => {
     return (
-        <div className="absolute top-10 right-10 p-4 bg-white shadow-lg">
+        <div className="absolute top-10 right-10 p-4 shadow-lg">
             Overlay!!
             <p>Rectangle Size: {rectSize}px</p>
             <input

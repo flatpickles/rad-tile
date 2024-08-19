@@ -1,10 +1,26 @@
-import { Point, TileModel } from './TileModel';
+import { Point, rotateTile, TileModel } from './TileModel';
 
+// todo: parameterize
+const REPETITION_COUNT = 8;
+
+// Zoom constants
 const ZOOM_IN = 1.05;
 const ZOOM_OUT = 0.95;
 const ZOOM_MIN = 0.1;
 const ZOOM_MAX = 10;
+
+// Scale constants
 const HANDLE_SIZE = 10;
+const STROKE_WIDTH = 7;
+
+// Color constants
+const ANCHOR_COLOR = 'rgba(0, 128, 0, 1.0)';
+const ACTIVE_COLOR_TILE = 'rgba(128, 0, 128, 1.0)';
+const ACTIVE_COLOR_PROGRESS = 'rgba(0, 0, 128, 1.0)';
+const ACTIVE_COLOR_STROKE = 'rgba(0, 0, 0, 1.0)';
+const REPEAT_COLOR_TILE = 'rgba(128, 0, 128, 0.4)';
+const REPEAT_COLOR_PROGRESS = 'rgba(0, 0, 128, 0.4)';
+const REPEAT_COLOR_STROKE = 'rgba(0, 0, 0, 1.0)';
 
 export class TileManager {
     private model: TileModel = new TileModel();
@@ -82,15 +98,66 @@ export class TileManager {
             throw new Error('No context');
         }
 
-        // Clear and translate the canvas
+        // Clear, setup, and translate the canvas
         context.clearRect(0, 0, this.canvas.width, this.canvas.height);
         context.save();
         context.translate(this.canvas.width / 2, this.canvas.height / 2);
         context.scale(this.zoom, this.zoom);
+        context.lineWidth = STROKE_WIDTH / this.zoom;
+        context.lineJoin = 'round';
 
-        // Draw existing tiles
+        // Draw radial repeats below active area
+        context.strokeStyle = REPEAT_COLOR_STROKE;
+        const alphaStep = (2 * Math.PI) / REPETITION_COUNT;
+        for (let alpha = alphaStep; alpha < 2 * Math.PI; alpha += alphaStep) {
+            // Existing tiles
+            context.fillStyle = REPEAT_COLOR_TILE;
+            this.model.tiles.forEach((tile) => {
+                const rotatedPoints = rotateTile(tile, alpha);
+                context.beginPath();
+                context.moveTo(rotatedPoints[0].x, rotatedPoints[0].y);
+                context.lineTo(rotatedPoints[1].x, rotatedPoints[1].y);
+                context.lineTo(rotatedPoints[3].x, rotatedPoints[3].y);
+                context.lineTo(rotatedPoints[2].x, rotatedPoints[2].y);
+                context.closePath();
+                context.fill();
+                context.stroke();
+            });
+
+            // Progress tile
+            if (this.model.progressTile) {
+                context.fillStyle = REPEAT_COLOR_PROGRESS;
+                const rotatedProgressPoints = rotateTile(
+                    this.model.progressTile,
+                    alpha,
+                );
+                context.beginPath();
+                context.moveTo(
+                    rotatedProgressPoints[0].x,
+                    rotatedProgressPoints[0].y,
+                );
+                context.lineTo(
+                    rotatedProgressPoints[1].x,
+                    rotatedProgressPoints[1].y,
+                );
+                context.lineTo(
+                    rotatedProgressPoints[3].x,
+                    rotatedProgressPoints[3].y,
+                );
+                context.lineTo(
+                    rotatedProgressPoints[2].x,
+                    rotatedProgressPoints[2].y,
+                );
+                context.closePath();
+                context.fill();
+                context.stroke();
+            }
+        }
+
+        // Existing tiles (in active area)
+        context.strokeStyle = ACTIVE_COLOR_STROKE;
+        context.fillStyle = ACTIVE_COLOR_TILE;
         this.model.tiles.forEach((tile) => {
-            context.fillStyle = 'red';
             context.beginPath();
             context.moveTo(tile.corners[0].x, tile.corners[0].y);
             context.lineTo(tile.corners[1].x, tile.corners[1].y);
@@ -98,11 +165,12 @@ export class TileManager {
             context.lineTo(tile.corners[2].x, tile.corners[2].y);
             context.closePath();
             context.fill();
+            context.stroke();
         });
 
-        // Draw the progress tile
+        // Progress tile (in active area)
         if (this.model.progressTile) {
-            context.fillStyle = 'blue';
+            context.fillStyle = ACTIVE_COLOR_PROGRESS;
             context.beginPath();
             context.moveTo(
                 this.model.progressTile.corners[0].x,
@@ -122,20 +190,20 @@ export class TileManager {
             );
             context.closePath();
             context.fill();
+            context.stroke();
         }
 
         // Draw the progress points OR the available anchors
+        context.fillStyle = ANCHOR_COLOR;
         const scaledHandleSize = HANDLE_SIZE / this.zoom; // constant across zoom levels
         if (this.progressPoints.length > 0) {
             this.progressPoints.forEach((point) => {
-                context.fillStyle = 'green';
                 context.beginPath();
                 context.arc(point.x, point.y, scaledHandleSize, 0, 2 * Math.PI);
                 context.fill();
             });
         } else {
             this.model.anchors.forEach((anchor) => {
-                context.fillStyle = 'green';
                 context.beginPath();
                 context.arc(
                     anchor.x,
