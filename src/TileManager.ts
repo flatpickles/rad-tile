@@ -62,13 +62,11 @@ export class TileManager {
             );
             if (anchor) {
                 this.progressPoints.push(anchor);
-            } else {
-                throw new Error('No nearest anchor');
             }
         }
         // Add the first corner:
         else if (this.progressPoints.length === 1) {
-            const newPoint = this.#pointOrNearestAnchor(canvasX, canvasY);
+            const newPoint = this.#pointOrNearestAnchor(canvasX, canvasY, true);
             this.progressPoints.push(newPoint);
         }
         // Add the second corner, commit & reset:
@@ -76,7 +74,7 @@ export class TileManager {
             this.model.setProgressTile(
                 this.progressPoints[0],
                 this.progressPoints[1],
-                this.#pointOrNearestAnchor(canvasX, canvasY),
+                this.#pointOrNearestAnchor(canvasX, canvasY, true),
             );
             this.model.commitProgressTile();
             this.progressPoints = [];
@@ -87,7 +85,11 @@ export class TileManager {
         // Translate the input coordinates to the canvas coordinates, incorporating the zoom level
         const canvasX = (x - this.canvas.width / 2) / this.zoom;
         const canvasY = (y - this.canvas.height / 2) / this.zoom;
-        this.hoverPoint = this.#pointOrNearestAnchor(canvasX, canvasY);
+        this.hoverPoint = this.#pointOrNearestAnchor(
+            canvasX,
+            canvasY,
+            this.progressPoints.length > 0,
+        );
 
         // Set the progress tile, only if we have two points
         if (this.progressPoints.length === 2) {
@@ -99,13 +101,18 @@ export class TileManager {
         }
     }
 
-    #pointOrNearestAnchor(x: number, y: number): Point {
+    #pointOrNearestAnchor(
+        x: number,
+        y: number,
+        includeRotations: boolean = false,
+    ): Point {
         if (SNAPPING) {
             const nearest = this.model.getNearestAnchor(
                 x,
                 y,
                 SNAP_DISTANCE / this.zoom,
                 this.progressPoints,
+                includeRotations ? (2 * Math.PI) / REPETITION_COUNT : null,
             );
             return nearest ?? { x, y };
         }
@@ -126,6 +133,7 @@ export class TileManager {
         context.scale(this.zoom, this.zoom);
         context.lineWidth = STROKE_WIDTH / this.zoom;
         context.lineJoin = 'round';
+        context.lineCap = 'round';
 
         // Draw radial repeats below active area
         context.strokeStyle = REPEAT_COLOR_STROKE;
@@ -214,7 +222,7 @@ export class TileManager {
             context.stroke();
         }
 
-        // Draw the progress points OR the available anchors
+        // Draw the progress OR the available anchors
         context.fillStyle = ANCHOR_COLOR;
         const scaledHandleSize = HANDLE_SIZE / this.zoom; // constant across zoom levels
         if (this.progressPoints.length > 0 && this.hoverPoint) {
@@ -228,12 +236,6 @@ export class TileManager {
                 context.lineTo(this.hoverPoint.x, this.hoverPoint.y);
                 context.stroke();
             }
-            // Draw progress points
-            this.progressPoints.forEach((point) => {
-                context.beginPath();
-                context.arc(point.x, point.y, scaledHandleSize, 0, 2 * Math.PI);
-                context.fill();
-            });
             // Draw hover point
             context.beginPath();
             context.arc(

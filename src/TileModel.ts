@@ -1,7 +1,7 @@
 export type Point = {
     x: number;
     y: number;
-    // todo: track connected tiles?
+    // todo: track connected tiles for deletion?
 };
 
 export type Tile = {
@@ -14,13 +14,14 @@ export type Tile = {
 };
 
 export function rotateTile(tile: Tile, angle: number): Point[] {
-    const rotatePoint = (point: Point, angle: number): Point => {
-        return {
-            x: point.x * Math.cos(angle) - point.y * Math.sin(angle),
-            y: point.x * Math.sin(angle) + point.y * Math.cos(angle),
-        };
-    };
     return tile.corners.map((corner) => rotatePoint(corner, angle));
+}
+
+export function rotatePoint(point: Point, angle: number): Point {
+    return {
+        x: point.x * Math.cos(angle) - point.y * Math.sin(angle),
+        y: point.x * Math.sin(angle) + point.y * Math.cos(angle),
+    };
 }
 
 export class TileModel {
@@ -33,11 +34,31 @@ export class TileModel {
         y: number,
         withinDistance = Infinity,
         excludePoints: Point[] = [],
+        alphaStep: number | null = null,
     ): Point | null {
         let nearestAnchor: Point | null = null;
         let nearestDistance = Infinity;
-        for (const anchor of this.anchors) {
-            if (excludePoints.includes(anchor)) continue;
+        const pointsToCheck = new Set(this.anchors);
+        if (alphaStep) {
+            [...this.anchors, ...(this.progressTile?.corners || [])].forEach(
+                (anchor) => {
+                    pointsToCheck.add(rotatePoint(anchor, alphaStep));
+                    pointsToCheck.add(rotatePoint(anchor, -alphaStep));
+                },
+            );
+        }
+
+        for (const anchor of pointsToCheck) {
+            // Skip points that should be excluded
+            let skip = false;
+            excludePoints.forEach((excludePoint) => {
+                if (anchor.x == excludePoint.x && anchor.y == excludePoint.y) {
+                    skip = true;
+                }
+            });
+            if (skip) continue;
+
+            // Calculate distance to the anchor
             const distance = Math.sqrt(
                 (x - anchor.x) ** 2 + (y - anchor.y) ** 2,
             );
