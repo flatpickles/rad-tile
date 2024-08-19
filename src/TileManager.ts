@@ -54,23 +54,18 @@ export class TileManager {
         const canvasY = (y - this.canvas.height / 2) / this.zoom;
 
         // Selecting also sets the hover point
-        this.hoverPoint = this.#pointOrNearestAnchor(
+        const [hoverPoint, hoverIsAnchor] = this.#pointOrNearestAnchor(
             canvasX,
             canvasY,
             this.progressPoints.length > 0,
         );
+        this.hoverPoint = hoverPoint;
 
         // Start a new tile:
         if (this.progressPoints.length === 0) {
             // Find the nearest anchor point to start from
-            // todo: reuse hoverPoint here?
-            const anchor = this.model.getNearestAnchor(
-                canvasX,
-                canvasY,
-                SNAP_DISTANCE / this.zoom,
-            );
-            if (anchor) {
-                this.progressPoints.push(anchor);
+            if (hoverIsAnchor) {
+                this.progressPoints.push(this.hoverPoint);
             }
         }
         // Add the first corner:
@@ -93,7 +88,7 @@ export class TileManager {
         // Translate the input coordinates to the canvas coordinates, incorporating the zoom level
         const canvasX = (x - this.canvas.width / 2) / this.zoom;
         const canvasY = (y - this.canvas.height / 2) / this.zoom;
-        this.hoverPoint = this.#pointOrNearestAnchor(
+        [this.hoverPoint] = this.#pointOrNearestAnchor(
             canvasX,
             canvasY,
             this.progressPoints.length > 0,
@@ -113,7 +108,7 @@ export class TileManager {
         x: number,
         y: number,
         includeRotations: boolean = false,
-    ): Point {
+    ): [Point, boolean] {
         if (SNAPPING) {
             const nearest = this.model.getNearestAnchor(
                 x,
@@ -122,9 +117,9 @@ export class TileManager {
                 this.progressPoints,
                 includeRotations ? (2 * Math.PI) / REPETITION_COUNT : null,
             );
-            return nearest ?? { x, y };
+            return [nearest ?? { x, y }, nearest !== null];
         }
-        return { x, y };
+        return [{ x, y }, false];
     }
 
     render() {
