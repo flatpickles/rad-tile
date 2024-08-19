@@ -10,11 +10,25 @@ const Canvas: React.FC = () => {
         const canvas = canvasRef.current;
         if (!canvas) return;
 
+        // Get the device pixel ratio
+        const dpr = window.devicePixelRatio || 1;
+
         // Resize the canvas to the window size as needed
         const handleResize = () => {
             if (canvas) {
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
+                const rect = canvas.getBoundingClientRect();
+                canvas.width = rect.width * dpr;
+                canvas.height = rect.height * dpr;
+                canvas.style.width = `${rect.width}px`;
+                canvas.style.height = `${rect.height}px`;
+
+                // Scale the canvas context
+                const ctx = canvas.getContext('2d');
+                if (ctx) {
+                    ctx.scale(dpr, dpr);
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
+                }
             }
         };
         handleResize();
@@ -34,7 +48,7 @@ const Canvas: React.FC = () => {
                 cancelAnimationFrame(rafIdRef.current);
             }
         };
-    });
+    }, [tileManager]);
 
     const handleClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
         tileManager.inputSelect(
@@ -53,11 +67,9 @@ const Canvas: React.FC = () => {
     return (
         <canvas
             ref={canvasRef}
-            width={window.innerWidth}
-            height={window.innerHeight}
+            className="w-full h-full absolute top-0 left-0"
             onClick={handleClick}
             onMouseMove={handleMouseMove}
-            className="absolute top-0 left-0"
         />
     );
 };
