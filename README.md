@@ -1,13 +1,13 @@
 # Rad Tile
 
-This will be a lightweight tool for easily making radial tile patterns, like the [Sandbox logo](https://sandbox.is). It's a React app, work in progress.
+This is a lightweight tool for easily making radial tile patterns, like the [Sandbox logo](https://sandbox.is). It's a React app, work in progress!
 
 ## short todo:
 
--   escape to stop adding
+-   escape to exita progress
 -   equal side length mode (holding shift)
 -   smooth zooming
--   color schemes (randomize)
+-   color schemes (randomize?)
 -   add vs remove (vs pan?) modes
 -   confirm no duplicate points (from anchor set)
 
@@ -17,7 +17,8 @@ This will be a lightweight tool for easily making radial tile patterns, like the
 -   parameterize: repeats around center
 -   snap to angles (adjustable)
 -   snap to edges
--   mobile layout
+-   mobile layout & UX
 -   more shapes! triangles, equilateral polygons...
 -   start with a shape in the center
 -   snap relative points in progress tile
+-   no overlap mode: snap to edges + remove fully utilized anchors
