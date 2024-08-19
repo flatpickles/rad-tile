@@ -28,14 +28,20 @@ export class TileModel {
     tiles: Tile[] = [];
     progressTile: Tile | null = null;
 
-    getNearestAnchor(x: number, y: number): Point | null {
+    getNearestAnchor(
+        x: number,
+        y: number,
+        withinDistance = Infinity,
+        excludePoints: Point[] = [],
+    ): Point | null {
         let nearestAnchor: Point | null = null;
         let nearestDistance = Infinity;
         for (const anchor of this.anchors) {
+            if (excludePoints.includes(anchor)) continue;
             const distance = Math.sqrt(
                 (x - anchor.x) ** 2 + (y - anchor.y) ** 2,
             );
-            if (distance < nearestDistance) {
+            if (distance < nearestDistance && distance < withinDistance) {
                 nearestDistance = distance;
                 nearestAnchor = anchor;
             }

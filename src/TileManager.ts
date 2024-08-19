@@ -1,7 +1,8 @@
 import { Point, rotateTile, TileModel } from './TileModel';
 
 // todo: parameterize
-const REPETITION_COUNT = 6;
+const REPETITION_COUNT = 8;
+const SNAPPING = true;
 
 // Zoom constants
 const ZOOM_IN = 1.05;
@@ -12,6 +13,7 @@ const ZOOM_MAX = 10;
 // Scale constants
 const HANDLE_SIZE = 10;
 const STROKE_WIDTH = 7;
+const SNAP_DISTANCE = 40;
 
 // Color constants
 const ANCHOR_COLOR = 'rgba(0, 128, 0, 1.0)';
@@ -53,7 +55,11 @@ export class TileManager {
         // Start a new tile:
         if (this.progressPoints.length === 0) {
             // Find the nearest anchor point to start from
-            const anchor = this.model.getNearestAnchor(canvasX, canvasY);
+            const anchor = this.model.getNearestAnchor(
+                canvasX,
+                canvasY,
+                SNAP_DISTANCE / this.zoom,
+            );
             if (anchor) {
                 this.progressPoints.push(anchor);
             } else {
@@ -62,7 +68,7 @@ export class TileManager {
         }
         // Add the first corner:
         else if (this.progressPoints.length === 1) {
-            const newPoint = { x: canvasX, y: canvasY }; // todo: snapping?
+            const newPoint = this.#pointOrNearestAnchor(canvasX, canvasY);
             this.progressPoints.push(newPoint);
         }
         // Add the second corner, commit & reset:
@@ -70,7 +76,7 @@ export class TileManager {
             this.model.setProgressTile(
                 this.progressPoints[0],
                 this.progressPoints[1],
-                { x: canvasX, y: canvasY },
+                this.#pointOrNearestAnchor(canvasX, canvasY),
             );
             this.model.commitProgressTile();
             this.progressPoints = [];
@@ -81,16 +87,29 @@ export class TileManager {
         // Translate the input coordinates to the canvas coordinates, incorporating the zoom level
         const canvasX = (x - this.canvas.width / 2) / this.zoom;
         const canvasY = (y - this.canvas.height / 2) / this.zoom;
-        this.hoverPoint = { x: canvasX, y: canvasY };
+        this.hoverPoint = this.#pointOrNearestAnchor(canvasX, canvasY);
 
         // Set the progress tile, only if we have two points
         if (this.progressPoints.length === 2) {
             this.model.setProgressTile(
                 this.progressPoints[0],
                 this.progressPoints[1],
-                { x: canvasX, y: canvasY },
+                this.hoverPoint,
             );
         }
+    }
+
+    #pointOrNearestAnchor(x: number, y: number): Point {
+        if (SNAPPING) {
+            const nearest = this.model.getNearestAnchor(
+                x,
+                y,
+                SNAP_DISTANCE / this.zoom,
+                this.progressPoints,
+            );
+            return nearest ?? { x, y };
+        }
+        return { x, y };
     }
 
     render() {

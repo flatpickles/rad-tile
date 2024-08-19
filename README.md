@@ -4,17 +4,20 @@ This will be a lightweight tool for easily making radial tile patterns, like the
 
 ## short todo:
 
--   rendering while adding (new dots etc)
+-   snap to rotated points
 -   highlight nearest points before add
--   no parallelograms (holding shift)
+-   equal side length mode (holding shift)
 -   escape to stop adding
 -   fix zooming
+-   color schemes (randomize)
+-   modes
+-   confirm no duplicate points
 
 ## long todo:
 
--   snapping during add
 -   delete tile
--   change repeats around center
--   snap to:
-    -   anchor points
-    -   angles
+-   parameterize: repeats around center
+-   snap to angles
+-   mobile layout
+-   more shapes! triangles, equilateral polygons...
+-   start with a shape in the center
