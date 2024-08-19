@@ -7,7 +7,7 @@ const App: React.FC = () => {
 
     return (
         <div className="relative h-screen w-screen">
-            <Canvas rectSize={rectSize} />
+            <Canvas />
             <Overlay rectSize={rectSize} setRectSize={setRectSize} />
         </div>
     );

@@ -1,40 +1,53 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { TileManager } from './TileManager';
 
-interface CanvasProps {
-    rectSize: number;
-}
-
-const Canvas: React.FC<CanvasProps> = ({ rectSize }) => {
+const Canvas: React.FC = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [tileManager] = useState(() => new TileManager());
+    const rafIdRef = useRef<number | null>(null);
 
     useEffect(() => {
         const canvas = canvasRef.current;
-        if (canvas) {
-            const ctx = canvas.getContext('2d');
-            if (ctx) {
-                ctx.fillStyle = 'lightgray';
-                ctx.fillRect(0, 0, canvas.width!, canvas.height!);
+        if (!canvas) return;
+
+        // Resize the canvas to the window size as needed
+        const handleResize = () => {
+            if (canvas) {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
             }
-        }
-    }, []);
+        };
+        handleResize();
+        window.addEventListener('resize', handleResize);
+
+        // Set up the render loop
+        const render = () => {
+            tileManager.render(canvas);
+            rafIdRef.current = requestAnimationFrame(render);
+        };
+        render();
+
+        // Clean up
+        return () => {
+            window.removeEventListener('resize', handleResize);
+            if (rafIdRef.current) {
+                cancelAnimationFrame(rafIdRef.current);
+            }
+        };
+    });
 
     const handleClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
-        const canvas = canvasRef.current;
-        if (canvas) {
-            const ctx = canvas.getContext('2d');
-            if (ctx) {
-                const rect = canvas.getBoundingClientRect();
-                const x = event.clientX - rect.left;
-                const y = event.clientY - rect.top;
-                ctx.fillStyle = 'blue';
-                ctx.fillRect(
-                    x - rectSize / 2,
-                    y - rectSize / 2,
-                    rectSize,
-                    rectSize,
-                );
-            }
-        }
+        tileManager.inputSelect(
+            event.nativeEvent.offsetX,
+            event.nativeEvent.offsetY,
+        );
+    };
+
+    const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
+        tileManager.inputMove(
+            event.nativeEvent.offsetX,
+            event.nativeEvent.offsetY,
+        );
     };
 
     return (
@@ -43,6 +56,7 @@ const Canvas: React.FC<CanvasProps> = ({ rectSize }) => {
             width={window.innerWidth}
             height={window.innerHeight}
             onClick={handleClick}
+            onMouseMove={handleMouseMove}
             className="absolute top-0 left-0"
         />
     );
