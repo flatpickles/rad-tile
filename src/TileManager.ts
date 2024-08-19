@@ -3,12 +3,23 @@ import { Point, TileModel } from './TileModel';
 export class TileManager {
     private model: TileModel = new TileModel();
     private progressPoints: Point[] = [];
+    private canvas: HTMLCanvasElement;
+
+    zoom: number = 1;
+
+    constructor(canvas: HTMLCanvasElement) {
+        this.canvas = canvas;
+    }
 
     inputSelect(x: number, y: number) {
+        // Translate the input coordinates to the canvas coordinates, incorporating the zoom level
+        const canvasX = (x - this.canvas.width / 2) / this.zoom;
+        const canvasY = (y - this.canvas.height / 2) / this.zoom;
+
         // Start a new tile:
         if (this.progressPoints.length === 0) {
             // Find the nearest anchor point to start from
-            const anchor = this.model.getNearestAnchor(x, y);
+            const anchor = this.model.getNearestAnchor(canvasX, canvasY);
             if (anchor) {
                 this.progressPoints.push(anchor);
             } else {
@@ -17,7 +28,7 @@ export class TileManager {
         }
         // Add the first corner:
         else if (this.progressPoints.length === 1) {
-            const newPoint = { x, y }; // todo: snapping?
+            const newPoint = { x: canvasX, y: canvasY }; // todo: snapping?
             this.progressPoints.push(newPoint);
         }
         // Add the second corner, commit & reset:
@@ -25,7 +36,7 @@ export class TileManager {
             this.model.setProgressTile(
                 this.progressPoints[0],
                 this.progressPoints[1],
-                { x, y },
+                { x: canvasX, y: canvasY },
             );
             this.model.commitProgressTile();
             this.progressPoints = [];
@@ -33,25 +44,32 @@ export class TileManager {
     }
 
     inputMove(x: number, y: number) {
+        // Translate the input coordinates to the canvas coordinates, incorporating the zoom level
+        const canvasX = (x - this.canvas.width / 2) / this.zoom;
+        const canvasY = (y - this.canvas.height / 2) / this.zoom;
+
         // Set the progress tile, only if we have two points
         if (this.progressPoints.length === 2) {
             this.model.setProgressTile(
                 this.progressPoints[0],
                 this.progressPoints[1],
-                { x, y },
+                { x: canvasX, y: canvasY },
             );
         }
     }
 
-    render(canvas: HTMLCanvasElement) {
+    render() {
         // Get the context
-        const context = canvas.getContext('2d');
+        const context = this.canvas.getContext('2d');
         if (!context) {
             throw new Error('No context');
         }
 
-        // Clear the canvas
-        context.clearRect(0, 0, canvas.width, canvas.height);
+        // Clear and translate the canvas
+        context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        context.save();
+        context.translate(this.canvas.width / 2, this.canvas.height / 2);
+        context.scale(this.zoom, this.zoom);
 
         // Draw existing tiles
         this.model.tiles.forEach((tile) => {
@@ -94,16 +112,19 @@ export class TileManager {
             this.progressPoints.forEach((point) => {
                 context.fillStyle = 'green';
                 context.beginPath();
-                context.arc(point.x, point.y, 5, 0, 2 * Math.PI);
+                context.arc(point.x, point.y, 10, 0, 2 * Math.PI);
                 context.fill();
             });
         } else {
             this.model.anchors.forEach((anchor) => {
-                context.fillStyle = 'yellow';
+                context.fillStyle = 'green';
                 context.beginPath();
-                context.arc(anchor.x, anchor.y, 5, 0, 2 * Math.PI);
+                context.arc(anchor.x, anchor.y, 10, 0, 2 * Math.PI);
                 context.fill();
             });
         }
+
+        // Reset translation
+        context.restore();
     }
 }

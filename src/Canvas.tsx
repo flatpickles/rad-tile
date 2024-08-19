@@ -1,34 +1,35 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { TileManager } from './TileManager';
+
+const dpr = window.devicePixelRatio || 1;
 
 const Canvas: React.FC = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const [tileManager] = useState(() => new TileManager());
+    const tileManagerRef = useRef<TileManager | null>(null);
     const rafIdRef = useRef<number | null>(null);
 
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
 
-        // Get the device pixel ratio
-        const dpr = window.devicePixelRatio || 1;
+        // Initialize TileManager only once
+        if (!tileManagerRef.current) {
+            tileManagerRef.current = new TileManager(canvas);
+        }
+
+        // Make it smoooooth
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+        }
 
         // Resize the canvas to the window size as needed
         const handleResize = () => {
             if (canvas) {
-                const rect = canvas.getBoundingClientRect();
-                canvas.width = rect.width * dpr;
-                canvas.height = rect.height * dpr;
-                canvas.style.width = `${rect.width}px`;
-                canvas.style.height = `${rect.height}px`;
-
-                // Scale the canvas context
-                const ctx = canvas.getContext('2d');
-                if (ctx) {
-                    ctx.scale(dpr, dpr);
-                    ctx.imageSmoothingEnabled = true;
-                    ctx.imageSmoothingQuality = 'high';
-                }
+                // Set the canvas size with DPR
+                canvas.width = canvas.clientWidth * dpr;
+                canvas.height = canvas.clientHeight * dpr;
             }
         };
         handleResize();
@@ -36,7 +37,9 @@ const Canvas: React.FC = () => {
 
         // Set up the render loop
         const render = () => {
-            tileManager.render(canvas);
+            if (tileManagerRef.current) {
+                tileManagerRef.current.render();
+            }
             rafIdRef.current = requestAnimationFrame(render);
         };
         render();
@@ -48,20 +51,28 @@ const Canvas: React.FC = () => {
                 cancelAnimationFrame(rafIdRef.current);
             }
         };
-    }, [tileManager]);
+    }, []);
 
     const handleClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
-        tileManager.inputSelect(
-            event.nativeEvent.offsetX,
-            event.nativeEvent.offsetY,
-        );
+        if (tileManagerRef.current) {
+            tileManagerRef.current.inputSelect(
+                event.nativeEvent.offsetX * dpr,
+                event.nativeEvent.offsetY * dpr,
+            );
+        }
     };
 
     const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
-        tileManager.inputMove(
-            event.nativeEvent.offsetX,
-            event.nativeEvent.offsetY,
-        );
+        if (tileManagerRef.current) {
+            tileManagerRef.current.inputMove(
+                event.nativeEvent.offsetX * dpr,
+                event.nativeEvent.offsetY * dpr,
+            );
+        }
+    };
+
+    const handleScroll = (event: React.UIEvent<HTMLCanvasElement>) => {
+        console.log(event);
     };
 
     return (
@@ -70,6 +81,7 @@ const Canvas: React.FC = () => {
             className="w-full h-full absolute top-0 left-0"
             onClick={handleClick}
             onMouseMove={handleMouseMove}
+            onScroll={handleScroll}
         />
     );
 };
