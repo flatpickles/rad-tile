@@ -1,7 +1,7 @@
 import { Point, rotateTile, TileModel } from './TileModel';
 
 // todo: parameterize
-const REPETITION_COUNT = 8;
+const REPETITION_COUNT = 6;
 
 // Zoom constants
 const ZOOM_IN = 1.05;
@@ -24,9 +24,10 @@ const REPEAT_COLOR_STROKE = 'rgba(0, 0, 0, 1.0)';
 
 export class TileManager {
     private model: TileModel = new TileModel();
-    private progressPoints: Point[] = [];
     private canvas: HTMLCanvasElement;
     private zoom: number = 1;
+    private progressPoints: Point[] = [];
+    private hoverPoint: Point | null = null;
 
     constructor(canvas: HTMLCanvasElement) {
         this.canvas = canvas;
@@ -80,6 +81,7 @@ export class TileManager {
         // Translate the input coordinates to the canvas coordinates, incorporating the zoom level
         const canvasX = (x - this.canvas.width / 2) / this.zoom;
         const canvasY = (y - this.canvas.height / 2) / this.zoom;
+        this.hoverPoint = { x: canvasX, y: canvasY };
 
         // Set the progress tile, only if we have two points
         if (this.progressPoints.length === 2) {
@@ -196,13 +198,35 @@ export class TileManager {
         // Draw the progress points OR the available anchors
         context.fillStyle = ANCHOR_COLOR;
         const scaledHandleSize = HANDLE_SIZE / this.zoom; // constant across zoom levels
-        if (this.progressPoints.length > 0) {
+        if (this.progressPoints.length > 0 && this.hoverPoint) {
+            // Draw path to hover point if there is no progress tile
+            if (!this.model.progressTile) {
+                context.beginPath();
+                context.moveTo(
+                    this.progressPoints[0].x,
+                    this.progressPoints[0].y,
+                );
+                context.lineTo(this.hoverPoint.x, this.hoverPoint.y);
+                context.stroke();
+            }
+            // Draw progress points
             this.progressPoints.forEach((point) => {
                 context.beginPath();
                 context.arc(point.x, point.y, scaledHandleSize, 0, 2 * Math.PI);
                 context.fill();
             });
+            // Draw hover point
+            context.beginPath();
+            context.arc(
+                this.hoverPoint.x,
+                this.hoverPoint.y,
+                scaledHandleSize,
+                0,
+                2 * Math.PI,
+            );
+            context.fill();
         } else {
+            // Draw anchors
             this.model.anchors.forEach((anchor) => {
                 context.beginPath();
                 context.arc(
