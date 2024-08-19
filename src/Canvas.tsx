@@ -35,6 +35,19 @@ const Canvas: React.FC = () => {
         handleResize();
         window.addEventListener('resize', handleResize);
 
+        // Add wheel event listener for zooming
+        const handleWheel = (event: WheelEvent) => {
+            event.preventDefault();
+            if (tileManagerRef.current) {
+                if (event.deltaY > 0) {
+                    tileManagerRef.current.zoomOut();
+                } else {
+                    tileManagerRef.current.zoomIn();
+                }
+            }
+        };
+        window.addEventListener('wheel', handleWheel, { passive: false });
+
         // Set up the render loop
         const render = () => {
             if (tileManagerRef.current) {
@@ -47,6 +60,7 @@ const Canvas: React.FC = () => {
         // Clean up
         return () => {
             window.removeEventListener('resize', handleResize);
+            window.removeEventListener('wheel', handleWheel);
             if (rafIdRef.current) {
                 cancelAnimationFrame(rafIdRef.current);
             }
@@ -71,17 +85,12 @@ const Canvas: React.FC = () => {
         }
     };
 
-    const handleScroll = (event: React.UIEvent<HTMLCanvasElement>) => {
-        console.log(event);
-    };
-
     return (
         <canvas
             ref={canvasRef}
             className="w-full h-full absolute top-0 left-0"
             onClick={handleClick}
             onMouseMove={handleMouseMove}
-            onScroll={handleScroll}
         />
     );
 };

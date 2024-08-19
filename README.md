@@ -4,8 +4,6 @@ This will be a lightweight tool for easily making radial tile patterns, like the
 
 ## short todo:
 
--   center everything
--   zooming
 -   rendering while adding (new dots etc)
 -   repeat around the circle
 -   highlight nearest points before add

@@ -1,14 +1,31 @@
 import { Point, TileModel } from './TileModel';
 
+const ZOOM_IN = 1.05;
+const ZOOM_OUT = 0.95;
+const ZOOM_MIN = 0.1;
+const ZOOM_MAX = 10;
+const HANDLE_SIZE = 10;
+
 export class TileManager {
     private model: TileModel = new TileModel();
     private progressPoints: Point[] = [];
     private canvas: HTMLCanvasElement;
-
-    zoom: number = 1;
+    private zoom: number = 1;
 
     constructor(canvas: HTMLCanvasElement) {
         this.canvas = canvas;
+    }
+
+    zoomIn() {
+        this.zoom *= ZOOM_IN;
+        this.zoom = Math.max(this.zoom, ZOOM_MIN);
+        this.zoom = Math.min(this.zoom, ZOOM_MAX);
+    }
+
+    zoomOut() {
+        this.zoom *= ZOOM_OUT;
+        this.zoom = Math.max(this.zoom, ZOOM_MIN);
+        this.zoom = Math.min(this.zoom, ZOOM_MAX);
     }
 
     inputSelect(x: number, y: number) {
@@ -108,18 +125,25 @@ export class TileManager {
         }
 
         // Draw the progress points OR the available anchors
+        const scaledHandleSize = HANDLE_SIZE / this.zoom; // constant across zoom levels
         if (this.progressPoints.length > 0) {
             this.progressPoints.forEach((point) => {
                 context.fillStyle = 'green';
                 context.beginPath();
-                context.arc(point.x, point.y, 10, 0, 2 * Math.PI);
+                context.arc(point.x, point.y, scaledHandleSize, 0, 2 * Math.PI);
                 context.fill();
             });
         } else {
             this.model.anchors.forEach((anchor) => {
                 context.fillStyle = 'green';
                 context.beginPath();
-                context.arc(anchor.x, anchor.y, 10, 0, 2 * Math.PI);
+                context.arc(
+                    anchor.x,
+                    anchor.y,
+                    scaledHandleSize,
+                    0,
+                    2 * Math.PI,
+                );
                 context.fill();
             });
         }
