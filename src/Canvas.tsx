@@ -50,6 +50,16 @@ const Canvas: React.FC = () => {
         };
         window.addEventListener('wheel', handleWheel, { passive: false });
 
+        // Add keydown event listener for escape
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === 'Escape') {
+                if (tileManagerRef.current) {
+                    tileManagerRef.current.cancelInput();
+                }
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+
         // Set up the render loop
         const render = () => {
             if (tileManagerRef.current) {
@@ -63,6 +73,7 @@ const Canvas: React.FC = () => {
         return () => {
             window.removeEventListener('resize', handleResize);
             window.removeEventListener('wheel', handleWheel);
+            window.removeEventListener('keydown', handleKeyDown);
             if (rafIdRef.current) {
                 cancelAnimationFrame(rafIdRef.current);
             }

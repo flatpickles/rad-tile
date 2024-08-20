@@ -4,7 +4,6 @@ This is a lightweight tool for easily making radial tile patterns, like the [San
 
 ## short todo:
 
--   escape to exita progress
 -   equal side length mode (holding shift)
 -   smooth zooming
 -   color schemes (randomize?)
@@ -22,3 +21,4 @@ This is a lightweight tool for easily making radial tile patterns, like the [San
 -   start with a shape in the center
 -   snap relative points in progress tile
 -   no overlap mode: snap to edges + remove fully utilized anchors
+-   persistence (local storage)

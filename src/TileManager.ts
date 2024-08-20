@@ -104,6 +104,11 @@ export class TileManager {
         }
     }
 
+    cancelInput() {
+        this.progressPoints = [];
+        this.model.progressTile = null;
+    }
+
     #pointOrNearestAnchor(
         x: number,
         y: number,
