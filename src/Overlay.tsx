@@ -5,8 +5,16 @@ interface OverlayProps {
     manager: TileManager | null;
 }
 
+type ClearConfirmState = {
+    confirming: boolean;
+    timeout?: number;
+};
+
 const Overlay: React.FC<OverlayProps> = ({ manager }) => {
     const [activeMode, setActiveMode] = useState<TileManagerMode>('add');
+    const [clearConfirm, setClearConfirm] = useState<ClearConfirmState>({
+        confirming: false,
+    });
 
     const handleModeChange = (mode: TileManagerMode) => {
         setActiveMode(mode);
@@ -42,10 +50,27 @@ const Overlay: React.FC<OverlayProps> = ({ manager }) => {
                     </button>
                 </div>
                 <button
-                    className="btn btn-sm"
+                    className={`btn btn-sm ${clearConfirm.confirming ? 'btn-error' : ''}`}
                     onClick={() => {
-                        manager?.clear();
-                        handleModeChange('add');
+                        if (clearConfirm.confirming) {
+                            manager?.clear();
+                            handleModeChange('add');
+                            setClearConfirm({ confirming: false });
+                        } else {
+                            const confirmTimeout = window.setTimeout(() => {
+                                setClearConfirm({
+                                    confirming: false,
+                                });
+                            }, 3000);
+                            setClearConfirm({
+                                confirming: true,
+                                timeout: confirmTimeout,
+                            });
+                        }
+                    }}
+                    onMouseOut={() => {
+                        clearTimeout(clearConfirm.timeout);
+                        setClearConfirm({ confirming: false });
                     }}
                 >
                     Clear
