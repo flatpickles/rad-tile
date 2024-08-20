@@ -3,7 +3,11 @@ import { TileManager } from './TileManager';
 
 const dpr = window.devicePixelRatio || 1;
 
-const Canvas: React.FC = () => {
+interface CanvasProps {
+    setManager: (manager: TileManager) => void;
+}
+
+const Canvas: React.FC<CanvasProps> = ({ setManager }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const tileManagerRef = useRef<TileManager | null>(null);
     const rafIdRef = useRef<number | null>(null);
@@ -24,6 +28,7 @@ const Canvas: React.FC = () => {
         // Initialize TileManager only once
         if (!tileManagerRef.current) {
             tileManagerRef.current = new TileManager(canvas);
+            setManager(tileManagerRef.current);
         }
 
         // Resize the canvas to the window size as needed
@@ -78,7 +83,7 @@ const Canvas: React.FC = () => {
                 cancelAnimationFrame(rafIdRef.current);
             }
         };
-    }, []);
+    });
 
     const handleClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
         if (tileManagerRef.current) {

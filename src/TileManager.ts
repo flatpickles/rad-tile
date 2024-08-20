@@ -25,12 +25,15 @@ const REPEAT_COLOR_TILE = 'rgba(128, 0, 128, 0.4)';
 const REPEAT_COLOR_PROGRESS = 'rgba(0, 0, 128, 0.4)';
 const REPEAT_COLOR_STROKE = 'rgba(0, 0, 0, 1.0)';
 
+export type TileManagerMode = 'add' | 'view';
+
 export class TileManager {
     private model: TileModel = new TileModel();
     private canvas: HTMLCanvasElement;
     private zoom: number = 1;
     private progressPoints: Point[] = [];
     private hoverPoint: Point | null = null;
+    private mode: TileManagerMode = 'add';
 
     constructor(canvas: HTMLCanvasElement) {
         this.canvas = canvas;
@@ -49,6 +52,8 @@ export class TileManager {
     }
 
     inputSelect(x: number, y: number) {
+        if (this.mode === 'view') return;
+
         // Translate the input coordinates to the canvas coordinates, incorporating the zoom level
         const canvasX = (x - this.canvas.width / 2) / this.zoom;
         const canvasY = (y - this.canvas.height / 2) / this.zoom;
@@ -85,6 +90,8 @@ export class TileManager {
     }
 
     inputMove(x: number, y: number) {
+        if (this.mode === 'view') return;
+
         // Translate the input coordinates to the canvas coordinates, incorporating the zoom level
         const canvasX = (x - this.canvas.width / 2) / this.zoom;
         const canvasY = (y - this.canvas.height / 2) / this.zoom;
@@ -107,6 +114,16 @@ export class TileManager {
     cancelInput() {
         this.progressPoints = [];
         this.model.progressTile = null;
+    }
+
+    clear() {
+        this.model.clear();
+        this.zoom = 1;
+    }
+
+    setMode(mode: TileManagerMode) {
+        this.cancelInput();
+        this.mode = mode;
     }
 
     #pointOrNearestAnchor(
@@ -144,11 +161,13 @@ export class TileManager {
         context.lineCap = 'round';
 
         // Draw radial repeats below active area
-        context.strokeStyle = REPEAT_COLOR_STROKE;
+        context.strokeStyle =
+            this.mode === 'add' ? REPEAT_COLOR_STROKE : ACTIVE_COLOR_STROKE;
         const alphaStep = (2 * Math.PI) / REPETITION_COUNT;
         for (let alpha = alphaStep; alpha < 2 * Math.PI; alpha += alphaStep) {
             // Existing tiles
-            context.fillStyle = REPEAT_COLOR_TILE;
+            context.fillStyle =
+                this.mode === 'add' ? REPEAT_COLOR_TILE : ACTIVE_COLOR_TILE;
             this.model.tiles.forEach((tile) => {
                 const rotatedPoints = rotateTile(tile, alpha);
                 context.beginPath();
@@ -230,55 +249,63 @@ export class TileManager {
             context.stroke();
         }
 
-        // Draw the progress OR the available anchors
-        const scaledHandleSize = HANDLE_SIZE / this.zoom; // constant across zoom levels
-        if (this.progressPoints.length > 0 && this.hoverPoint) {
-            // Draw path to hover point if there is no progress tile
-            if (!this.model.progressTile) {
-                context.beginPath();
-                context.moveTo(
-                    this.progressPoints[0].x,
-                    this.progressPoints[0].y,
-                );
-                context.lineTo(this.hoverPoint.x, this.hoverPoint.y);
-                context.stroke();
-            }
-            // Draw progress points
-            context.fillStyle = ANCHOR_COLOR;
-            this.progressPoints.forEach((point) => {
-                context.beginPath();
-                context.arc(point.x, point.y, scaledHandleSize, 0, 2 * Math.PI);
-                context.fill();
-            });
-            // Draw hover point
-            context.fillStyle = ANCHOR_COLOR_ACTIVE;
-            context.beginPath();
-            context.arc(
-                this.hoverPoint.x,
-                this.hoverPoint.y,
-                scaledHandleSize,
-                0,
-                2 * Math.PI,
-            );
-            context.fill();
-        } else {
-            // Draw anchors
-            this.model.anchors.forEach((anchor) => {
-                if (anchor === this.hoverPoint) {
-                    context.fillStyle = ANCHOR_COLOR_ACTIVE;
-                } else {
-                    context.fillStyle = ANCHOR_COLOR;
+        if (this.mode === 'add') {
+            // Draw the progress OR the available anchors
+            const scaledHandleSize = HANDLE_SIZE / this.zoom; // constant across zoom levels
+            if (this.progressPoints.length > 0 && this.hoverPoint) {
+                // Draw path to hover point if there is no progress tile
+                if (!this.model.progressTile) {
+                    context.beginPath();
+                    context.moveTo(
+                        this.progressPoints[0].x,
+                        this.progressPoints[0].y,
+                    );
+                    context.lineTo(this.hoverPoint.x, this.hoverPoint.y);
+                    context.stroke();
                 }
+                // Draw progress points
+                context.fillStyle = ANCHOR_COLOR;
+                this.progressPoints.forEach((point) => {
+                    context.beginPath();
+                    context.arc(
+                        point.x,
+                        point.y,
+                        scaledHandleSize,
+                        0,
+                        2 * Math.PI,
+                    );
+                    context.fill();
+                });
+                // Draw hover point
+                context.fillStyle = ANCHOR_COLOR_ACTIVE;
                 context.beginPath();
                 context.arc(
-                    anchor.x,
-                    anchor.y,
+                    this.hoverPoint.x,
+                    this.hoverPoint.y,
                     scaledHandleSize,
                     0,
                     2 * Math.PI,
                 );
                 context.fill();
-            });
+            } else {
+                // Draw anchors
+                this.model.anchors.forEach((anchor) => {
+                    if (anchor === this.hoverPoint) {
+                        context.fillStyle = ANCHOR_COLOR_ACTIVE;
+                    } else {
+                        context.fillStyle = ANCHOR_COLOR;
+                    }
+                    context.beginPath();
+                    context.arc(
+                        anchor.x,
+                        anchor.y,
+                        scaledHandleSize,
+                        0,
+                        2 * Math.PI,
+                    );
+                    context.fill();
+                });
+            }
         }
 
         // Reset translation

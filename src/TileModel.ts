@@ -98,4 +98,10 @@ export class TileModel {
         this.anchors.add(this.progressTile.corners[3]);
         this.progressTile = null;
     }
+
+    clear() {
+        this.tiles = [];
+        this.anchors = new Set([{ x: 0, y: 0 }]);
+        this.progressTile = null;
+    }
 }

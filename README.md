@@ -7,8 +7,8 @@ This is a lightweight tool for easily making radial tile patterns, like the [San
 -   equal side length mode (holding shift)
 -   smooth zooming
 -   color schemes (randomize?)
--   add vs remove (vs pan?) modes
 -   confirm no duplicate points (from anchor set)
+-   remove mode
 
 ## long todo:
 
