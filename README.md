@@ -5,7 +5,6 @@ This is a lightweight tool for easily making radial tile patterns, like the [San
 ## short todo:
 
 -   equal side length mode (holding shift)
--   smooth zooming
 -   color schemes (randomize?)
 -   confirm no duplicate points (from anchor set)
 -   remove mode
@@ -17,6 +16,7 @@ This is a lightweight tool for easily making radial tile patterns, like the [San
 -   snap to angles (adjustable)
 -   snap to edges
 -   mobile layout & UX
+-   better overlap interleaving behavior
 -   more shapes! triangles, equilateral polygons...
 -   start with a shape in the center
 -   snap relative points in progress tile

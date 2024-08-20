@@ -42,18 +42,14 @@ const Canvas: React.FC<CanvasProps> = ({ setManager }) => {
         handleResize();
         window.addEventListener('resize', handleResize);
 
-        // Add wheel event listener for zooming
+        // Add wheel event listener for zooming on the canvas only
         const handleWheel = (event: WheelEvent) => {
             event.preventDefault();
             if (tileManagerRef.current) {
-                if (event.deltaY > 0) {
-                    tileManagerRef.current.zoomOut();
-                } else {
-                    tileManagerRef.current.zoomIn();
-                }
+                tileManagerRef.current.applyZoom(event.deltaY);
             }
         };
-        window.addEventListener('wheel', handleWheel, { passive: false });
+        canvas.addEventListener('wheel', handleWheel, { passive: false });
 
         // Add keydown event listener for escape
         const handleKeyDown = (event: KeyboardEvent) => {
@@ -77,7 +73,7 @@ const Canvas: React.FC<CanvasProps> = ({ setManager }) => {
         // Clean up
         return () => {
             window.removeEventListener('resize', handleResize);
-            window.removeEventListener('wheel', handleWheel);
+            canvas.removeEventListener('wheel', handleWheel);
             window.removeEventListener('keydown', handleKeyDown);
             if (rafIdRef.current) {
                 cancelAnimationFrame(rafIdRef.current);

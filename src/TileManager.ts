@@ -5,8 +5,7 @@ const REPETITION_COUNT = 8;
 const SNAPPING = true;
 
 // Zoom constants
-const ZOOM_IN = 1.05;
-const ZOOM_OUT = 0.95;
+const ZOOM_FACTOR = 0.01;
 const ZOOM_MIN = 0.1;
 const ZOOM_MAX = 10;
 
@@ -39,14 +38,8 @@ export class TileManager {
         this.canvas = canvas;
     }
 
-    zoomIn() {
-        this.zoom *= ZOOM_IN;
-        this.zoom = Math.max(this.zoom, ZOOM_MIN);
-        this.zoom = Math.min(this.zoom, ZOOM_MAX);
-    }
-
-    zoomOut() {
-        this.zoom *= ZOOM_OUT;
+    applyZoom(delta: number) {
+        this.zoom *= 1 + delta * ZOOM_FACTOR;
         this.zoom = Math.max(this.zoom, ZOOM_MIN);
         this.zoom = Math.min(this.zoom, ZOOM_MAX);
     }
@@ -152,7 +145,8 @@ export class TileManager {
         }
 
         // Clear, setup, and translate the canvas
-        context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        context.fillStyle = '#f0f0f0';
+        context.fillRect(0, 0, this.canvas.width, this.canvas.height);
         context.save();
         context.translate(this.canvas.width / 2, this.canvas.height / 2);
         context.scale(this.zoom, this.zoom);

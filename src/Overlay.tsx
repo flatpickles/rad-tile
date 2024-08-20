@@ -22,8 +22,8 @@ const Overlay: React.FC<OverlayProps> = ({ manager }) => {
     };
 
     return (
-        <div className="absolute top-10 right-10 p-4 shadow-lg rounded-lg bg-base-300 w-72 flex flex-col gap-2">
-            <h2 className="text-xl font-bold">Rad Tile</h2>
+        <div className="absolute top-10 right-10 p-4 shadow-sm rounded-lg bg-base-100 border bg-opacity-90 backdrop-blur-lg w-72 flex flex-col gap-2">
+            <h2 className="text-2xl font-bold">Rad Tile</h2>
             <p className="text-sm">
                 ... is a{' '}
                 <a
