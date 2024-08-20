@@ -1,7 +1,14 @@
+// Repetition count for anchors and tiles (todo: make configurable)
+const REPETITION_COUNT = 8;
+
 export type Point = {
     x: number;
     y: number;
     // todo: track connected tiles for deletion?
+};
+
+export type AnchorPoint = Point & {
+    repetitions: number;
 };
 
 export type Tile = {
@@ -11,6 +18,7 @@ export type Tile = {
         Point, // right anchor (clockwise)
         Point, // outer anchor
     ];
+    repetitions: number;
 };
 
 export function rotateTile(tile: Tile, angle: number): Point[] {
@@ -24,8 +32,18 @@ export function rotatePoint(point: Point, angle: number): Point {
     };
 }
 
+export function allTileRotations(tile: Tile): Point[][] {
+    const rotatedTilePoints: Point[][] = [];
+    const alphaStep = (2 * Math.PI) / tile.repetitions;
+    for (let alpha = alphaStep; alpha < 2 * Math.PI; alpha += alphaStep) {
+        const rotatedTile = rotateTile(tile, alpha);
+        rotatedTilePoints.push(rotatedTile);
+    }
+    return rotatedTilePoints;
+}
+
 export class TileModel {
-    anchors: Set<Point> = new Set([{ x: 0, y: 0 }]);
+    anchors: Set<AnchorPoint> = new Set([{ x: 0, y: 0, repetitions: 0 }]);
     tiles: Tile[] = [];
     progressTile: Tile | null = null;
 
@@ -34,18 +52,26 @@ export class TileModel {
         y: number,
         withinDistance = Infinity,
         excludePoints: Point[] = [],
-        alphaStep: number | null = null,
+        includeRotations = false,
     ): Point | null {
         let nearestAnchor: Point | null = null;
         let nearestDistance = Infinity;
-        const pointsToCheck = new Set(this.anchors);
-        if (alphaStep) {
-            [...this.anchors, ...(this.progressTile?.corners || [])].forEach(
-                (anchor) => {
-                    pointsToCheck.add(rotatePoint(anchor, alphaStep));
-                    pointsToCheck.add(rotatePoint(anchor, -alphaStep));
-                },
-            );
+        const pointsToCheck: Set<Point> = new Set(this.anchors);
+        if (includeRotations) {
+            // Add rotations of anchors
+            this.anchors.forEach((anchor) => {
+                const alphaStep = (2 * Math.PI) / anchor.repetitions;
+                pointsToCheck.add(rotatePoint(anchor, alphaStep));
+                pointsToCheck.add(rotatePoint(anchor, -alphaStep));
+            });
+            // Add rotations of progress tile corners
+            if (this.progressTile) {
+                const alphaStep = (2 * Math.PI) / this.progressTile.repetitions;
+                this.progressTile.corners.forEach((corner) => {
+                    pointsToCheck.add(rotatePoint(corner, alphaStep));
+                    pointsToCheck.add(rotatePoint(corner, -alphaStep));
+                });
+            }
         }
 
         for (const anchor of pointsToCheck) {
@@ -82,6 +108,7 @@ export class TileModel {
         // Create and set the progress tile
         this.progressTile = {
             corners: [inner, left, right, { x: outerX, y: outerY }],
+            repetitions: REPETITION_COUNT,
         };
     }
 
@@ -91,17 +118,21 @@ export class TileModel {
         }
 
         // Add the new tile, and corners as anchors
-        this.tiles.push(this.progressTile);
-        this.anchors.add(this.progressTile.corners[0]);
-        this.anchors.add(this.progressTile.corners[1]);
-        this.anchors.add(this.progressTile.corners[2]);
-        this.anchors.add(this.progressTile.corners[3]);
+        const progressTile = this.progressTile;
+        this.tiles.push(progressTile);
+        progressTile.corners.forEach((corner) => {
+            this.anchors.add({
+                x: corner.x,
+                y: corner.y,
+                repetitions: progressTile.repetitions,
+            });
+        });
         this.progressTile = null;
     }
 
     clear() {
         this.tiles = [];
-        this.anchors = new Set([{ x: 0, y: 0 }]);
+        this.anchors = new Set([{ x: 0, y: 0, repetitions: 0 }]);
         this.progressTile = null;
     }
 }

@@ -1,8 +1,6 @@
-import { Point, rotateTile, TileModel } from './TileModel';
+import { allTileRotations, Point, TileModel } from './TileModel';
 
-// todo: parameterize
-const REPETITION_COUNT = 8;
-const SNAPPING = true;
+const SNAPPING = true; // todo: parameterize
 
 // Zoom constants
 const ZOOM_FACTOR = 0.01;
@@ -130,7 +128,7 @@ export class TileManager {
                 y,
                 SNAP_DISTANCE / this.zoom,
                 this.progressPoints,
-                includeRotations ? (2 * Math.PI) / REPETITION_COUNT : null,
+                includeRotations,
             );
             return [nearest ?? { x, y }, nearest !== null];
         }
@@ -154,16 +152,14 @@ export class TileManager {
         context.lineJoin = 'round';
         context.lineCap = 'round';
 
-        // Draw radial repeats below active area
+        // Draw existing repeats below active area
         context.strokeStyle =
             this.mode === 'add' ? REPEAT_COLOR_STROKE : ACTIVE_COLOR_STROKE;
-        const alphaStep = (2 * Math.PI) / REPETITION_COUNT;
-        for (let alpha = alphaStep; alpha < 2 * Math.PI; alpha += alphaStep) {
-            // Existing tiles
-            context.fillStyle =
-                this.mode === 'add' ? REPEAT_COLOR_TILE : ACTIVE_COLOR_TILE;
-            this.model.tiles.forEach((tile) => {
-                const rotatedPoints = rotateTile(tile, alpha);
+        context.fillStyle =
+            this.mode === 'add' ? REPEAT_COLOR_TILE : ACTIVE_COLOR_TILE;
+        this.model.tiles
+            .flatMap((tile) => allTileRotations(tile)) // todo memoize?
+            .forEach((rotatedPoints) => {
                 context.beginPath();
                 context.moveTo(rotatedPoints[0].x, rotatedPoints[0].y);
                 context.lineTo(rotatedPoints[1].x, rotatedPoints[1].y);
@@ -174,34 +170,33 @@ export class TileManager {
                 context.stroke();
             });
 
-            // Progress tile
-            if (this.model.progressTile) {
-                context.fillStyle = REPEAT_COLOR_PROGRESS;
-                const rotatedProgressPoints = rotateTile(
-                    this.model.progressTile,
-                    alpha,
-                );
-                context.beginPath();
-                context.moveTo(
-                    rotatedProgressPoints[0].x,
-                    rotatedProgressPoints[0].y,
-                );
-                context.lineTo(
-                    rotatedProgressPoints[1].x,
-                    rotatedProgressPoints[1].y,
-                );
-                context.lineTo(
-                    rotatedProgressPoints[3].x,
-                    rotatedProgressPoints[3].y,
-                );
-                context.lineTo(
-                    rotatedProgressPoints[2].x,
-                    rotatedProgressPoints[2].y,
-                );
-                context.closePath();
-                context.fill();
-                context.stroke();
-            }
+        // Draw progress tile repeats below active area
+        if (this.model.progressTile) {
+            context.fillStyle = REPEAT_COLOR_PROGRESS;
+            allTileRotations(this.model.progressTile).forEach(
+                (rotatedProgressPoints) => {
+                    context.beginPath();
+                    context.moveTo(
+                        rotatedProgressPoints[0].x,
+                        rotatedProgressPoints[0].y,
+                    );
+                    context.lineTo(
+                        rotatedProgressPoints[1].x,
+                        rotatedProgressPoints[1].y,
+                    );
+                    context.lineTo(
+                        rotatedProgressPoints[3].x,
+                        rotatedProgressPoints[3].y,
+                    );
+                    context.lineTo(
+                        rotatedProgressPoints[2].x,
+                        rotatedProgressPoints[2].y,
+                    );
+                    context.closePath();
+                    context.fill();
+                    context.stroke();
+                },
+            );
         }
 
         // Existing tiles (in active area)
