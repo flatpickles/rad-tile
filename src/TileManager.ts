@@ -31,6 +31,7 @@ export class TileManager {
     private progressPoints: Point[] = [];
     private hoverPoint: Point | null = null;
     private mode: TileManagerMode = 'add';
+    private repetitionCount: number = 8;
 
     constructor(canvas: HTMLCanvasElement) {
         this.canvas = canvas;
@@ -74,6 +75,7 @@ export class TileManager {
                 this.progressPoints[0],
                 this.progressPoints[1],
                 this.hoverPoint,
+                this.repetitionCount,
             );
             this.model.commitProgressTile();
             this.progressPoints = [];
@@ -98,7 +100,15 @@ export class TileManager {
                 this.progressPoints[0],
                 this.progressPoints[1],
                 this.hoverPoint,
+                this.repetitionCount,
             );
+        }
+    }
+
+    setRepetitionCount(repetitionCount: number) {
+        this.repetitionCount = repetitionCount;
+        if (this.model.progressTile) {
+            this.model.progressTile.repetitions = this.repetitionCount;
         }
     }
 

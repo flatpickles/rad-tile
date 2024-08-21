@@ -1,6 +1,3 @@
-// Repetition count for anchors and tiles (todo: make configurable)
-const REPETITION_COUNT = 8;
-
 export type Point = {
     x: number;
     y: number;
@@ -96,7 +93,12 @@ export class TileModel {
         return nearestAnchor;
     }
 
-    setProgressTile(inner: Point, left: Point, right: Point) {
+    setProgressTile(
+        inner: Point,
+        left: Point,
+        right: Point,
+        repetitions: number,
+    ) {
         // Calculate the outer corner
         const innerX = inner.x;
         const innerY = inner.y;
@@ -108,7 +110,7 @@ export class TileModel {
         // Create and set the progress tile
         this.progressTile = {
             corners: [inner, left, right, { x: outerX, y: outerY }],
-            repetitions: REPETITION_COUNT,
+            repetitions: repetitions,
         };
     }
 

@@ -15,10 +15,16 @@ const Overlay: React.FC<OverlayProps> = ({ manager }) => {
     const [clearConfirm, setClearConfirm] = useState<ClearConfirmState>({
         confirming: false,
     });
+    const [repetitionCount, setRepetitionCount] = useState<number>(8);
 
     const handleModeChange = (mode: TileManagerMode) => {
         setActiveMode(mode);
         manager?.setMode(mode);
+    };
+
+    const handleRepetitionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setRepetitionCount(parseInt(e.target.value));
+        manager?.setRepetitionCount(parseInt(e.target.value));
     };
 
     return (
@@ -76,6 +82,15 @@ const Overlay: React.FC<OverlayProps> = ({ manager }) => {
                     Clear
                 </button>
             </div>
+            <p>New tile repetitions: {repetitionCount}</p>
+            <input
+                type="range"
+                min={1}
+                max={16}
+                value={repetitionCount}
+                onChange={handleRepetitionChange}
+                className="range range-xs"
+            />
         </div>
     );
 };
