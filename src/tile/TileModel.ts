@@ -57,12 +57,13 @@ export class TileModel {
         if (includeRotations) {
             // Add rotations of anchors
             this.anchors.forEach((anchor) => {
+                if (anchor.repetitions <= 1) return;
                 const alphaStep = (2 * Math.PI) / anchor.repetitions;
                 pointsToCheck.add(rotatePoint(anchor, alphaStep));
                 pointsToCheck.add(rotatePoint(anchor, -alphaStep));
             });
             // Add rotations of progress tile corners
-            if (this.progressTile) {
+            if (this.progressTile && this.progressTile.repetitions > 1) {
                 const alphaStep = (2 * Math.PI) / this.progressTile.repetitions;
                 this.progressTile.corners.forEach((corner) => {
                     pointsToCheck.add(rotatePoint(corner, alphaStep));

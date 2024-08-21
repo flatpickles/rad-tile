@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { TileManager } from './TileManager';
+import { TileManager } from '../tile/TileManager';
 
 const dpr = window.devicePixelRatio || 1;
 

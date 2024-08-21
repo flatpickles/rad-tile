@@ -4,6 +4,7 @@ This is a lightweight tool for easily making radial tile patterns, like the [San
 
 ## short todo:
 
+-   constrain repeat counts (subdivisions of first)
 -   repeat count hotkeys
 -   reflect across repeat increments (for even repeat counts)
 -   delete tiles (remove mode)
@@ -21,4 +22,4 @@ This is a lightweight tool for easily making radial tile patterns, like the [San
 -   start with a shape in the center
 -   snap relative points in progress tile
 -   no overlap mode: snap to edges + remove fully utilized anchors
--   persistence (local storage)
+-   persistence for config + tiles (local storage)
