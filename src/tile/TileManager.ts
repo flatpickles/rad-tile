@@ -75,7 +75,7 @@ export class TileManager {
         this.zoom = Math.min(this.zoom, ZOOM_MAX);
     }
 
-    inputSelect(x: number, y: number) {
+    inputSelect(x: number, y: number, complete = false) {
         if (this.mode === 'view') return;
 
         // Translate the input coordinates to the canvas coordinates, incorporating the zoom level
@@ -113,7 +113,7 @@ export class TileManager {
                 this.shapeType,
                 this.repetitionCount,
             );
-            if (this.shapeType !== 'free' || closingShape) {
+            if (this.shapeType !== 'free' || closingShape || complete) {
                 this.model.commitProgressTile();
                 this.progressPoints = [];
                 this.#broadcast('add');
@@ -121,6 +121,16 @@ export class TileManager {
                 this.progressPoints.push(this.hoverPoint);
             }
         }
+    }
+
+    inputContextSelect(x: number, y: number): boolean {
+        // Finish shape if we have two or more points
+        if (this.mode === 'add' && this.progressPoints.length >= 2) {
+            this.inputSelect(x, y, true);
+            return true;
+        }
+        // Otherwise, use default context menu behavior
+        return false;
     }
 
     inputMove(x: number, y: number) {

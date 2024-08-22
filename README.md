@@ -4,7 +4,6 @@ This is a lightweight tool for easily making radial tile patterns, like the [San
 
 ## short todo:
 
--   right click to finish free poly
 -   snap to angles (adjustable, based on repeat count & relative center position)
 -   delete tiles (remove mode; set base to min repeat of all tiles)
 -   color schemes (randomize?)

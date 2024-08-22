@@ -99,11 +99,26 @@ const Canvas: React.FC<CanvasProps> = ({ setManager }) => {
         }
     };
 
+    const handleContextMenu = (event: React.MouseEvent<HTMLCanvasElement>) => {
+        if (tileManagerRef.current) {
+            // Prevent default if the input is used
+            if (
+                tileManagerRef.current.inputContextSelect(
+                    event.nativeEvent.offsetX * dpr,
+                    event.nativeEvent.offsetY * dpr,
+                )
+            ) {
+                event.preventDefault();
+            }
+        }
+    };
+
     return (
         <canvas
             ref={canvasRef}
             className="w-full h-full absolute top-0 left-0"
             onClick={handleClick}
+            onContextMenu={handleContextMenu}
             onMouseMove={handleMouseMove}
         />
     );
