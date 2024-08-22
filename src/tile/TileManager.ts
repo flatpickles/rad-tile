@@ -23,6 +23,7 @@ const REPEAT_COLOR_PROGRESS = 'rgba(0, 0, 128, 0.4)';
 const REPEAT_COLOR_STROKE = 'rgba(0, 0, 0, 1.0)';
 
 export type TileManagerMode = 'add' | 'view';
+export type TileManagerEvent = 'add';
 
 export class TileManager {
     private model: TileModel = new TileModel();
@@ -36,6 +37,35 @@ export class TileManager {
     constructor(canvas: HTMLCanvasElement) {
         this.canvas = canvas;
     }
+
+    // Event listeners
+
+    listeners: { [event: string]: ((event: TileManagerEvent) => void)[] } = {};
+
+    addEventListener(
+        event: TileManagerEvent,
+        listener: (event: TileManagerEvent) => void,
+    ) {
+        if (!this.listeners[event]) {
+            this.listeners[event] = [];
+        }
+        this.listeners[event].push(listener);
+    }
+
+    removeEventListener(
+        event: string,
+        listener: (event: TileManagerEvent) => void,
+    ) {
+        this.listeners[event] = this.listeners[event].filter(
+            (l) => l !== listener,
+        );
+    }
+
+    #broadcast(event: TileManagerEvent) {
+        this.listeners[event]?.forEach((listener) => listener(event));
+    }
+
+    // Input handling
 
     applyZoom(delta: number) {
         this.zoom *= 1 + delta * ZOOM_FACTOR;
@@ -79,6 +109,7 @@ export class TileManager {
             );
             this.model.commitProgressTile();
             this.progressPoints = [];
+            this.#broadcast('add');
         }
     }
 
@@ -105,16 +136,18 @@ export class TileManager {
         }
     }
 
+    cancelInput() {
+        this.progressPoints = [];
+        this.model.progressTile = null;
+    }
+
+    // State handling
+
     setRepetitionCount(repetitionCount: number) {
         this.repetitionCount = repetitionCount;
         if (this.model.progressTile) {
             this.model.progressTile.repetitions = this.repetitionCount;
         }
-    }
-
-    cancelInput() {
-        this.progressPoints = [];
-        this.model.progressTile = null;
     }
 
     clear() {
@@ -144,6 +177,8 @@ export class TileManager {
         }
         return [{ x, y }, false];
     }
+
+    // Rendering
 
     render() {
         // Get the context
@@ -289,7 +324,10 @@ export class TileManager {
             } else {
                 // Draw anchors
                 this.model.anchors.forEach((anchor) => {
-                    if (anchor === this.hoverPoint) {
+                    if (
+                        anchor.x === this.hoverPoint?.x &&
+                        anchor.y === this.hoverPoint?.y
+                    ) {
                         context.fillStyle = ANCHOR_COLOR_ACTIVE;
                     } else {
                         context.fillStyle = ANCHOR_COLOR;

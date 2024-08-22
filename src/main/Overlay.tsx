@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import ClearButton from '../components/ClearButton';
 import ModeSelector from '../components/ModeSelector';
 import OverlayHeader from '../components/OverlayHeader';
 import RepeatSlider from '../components/RepeatSlider';
 import { TileManager, TileManagerMode } from '../tile/TileManager';
+
+const DEFAULT_REPEATS = 8;
 
 interface OverlayProps {
     manager: TileManager | null;
@@ -11,21 +13,38 @@ interface OverlayProps {
 
 const Overlay: React.FC<OverlayProps> = ({ manager }) => {
     const [activeMode, setActiveMode] = useState<TileManagerMode>('add');
-    const [repetitionCount, setRepetitionCount] = useState<number>(8);
+    const [repeats, setRepeats] = useState<number>(DEFAULT_REPEATS);
+    const [baseRepeats, setBaseRepeats] = useState<number | null>(null);
+
+    useEffect(() => {
+        const addListener = () => {
+            setBaseRepeats(repeats);
+        };
+
+        if (manager) {
+            manager.addEventListener('add', addListener);
+        }
+        return () => {
+            manager?.removeEventListener('add', addListener);
+        };
+    }, [manager, baseRepeats, repeats]);
 
     const handleModeChange = (mode: TileManagerMode) => {
         setActiveMode(mode);
         manager?.setMode(mode);
     };
 
-    const handleRepetitionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setRepetitionCount(parseInt(e.target.value));
-        manager?.setRepetitionCount(parseInt(e.target.value));
+    const repeatSliderSet = (repeatCount: number) => {
+        setRepeats(repeatCount);
+        manager?.setRepetitionCount(repeatCount);
     };
 
     const handleClear = () => {
         manager?.clear();
         handleModeChange('add');
+        setBaseRepeats(null);
+        setRepeats(DEFAULT_REPEATS);
+        manager?.setRepetitionCount(DEFAULT_REPEATS);
     };
 
     return (
@@ -39,8 +58,9 @@ const Overlay: React.FC<OverlayProps> = ({ manager }) => {
                 <ClearButton handleClear={handleClear} />
             </div>
             <RepeatSlider
-                repeatCount={repetitionCount}
-                handleRepeatChange={handleRepetitionChange}
+                repeats={repeats}
+                setRepeats={repeatSliderSet}
+                baseRepeats={baseRepeats}
             />
         </div>
     );

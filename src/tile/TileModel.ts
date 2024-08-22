@@ -51,8 +51,6 @@ export class TileModel {
         excludePoints: Point[] = [],
         includeRotations = false,
     ): Point | null {
-        let nearestAnchor: Point | null = null;
-        let nearestDistance = Infinity;
         const pointsToCheck: Set<Point> = new Set(this.anchors);
         if (includeRotations) {
             // Add rotations of anchors
@@ -72,6 +70,8 @@ export class TileModel {
             }
         }
 
+        let nearestAnchor: Point | null = null;
+        let nearestDistance = Infinity;
         for (const anchor of pointsToCheck) {
             // Skip points that should be excluded
             let skip = false;
