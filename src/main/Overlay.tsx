@@ -3,7 +3,8 @@ import ClearButton from '../components/ClearButton';
 import ModeSelector from '../components/ModeSelector';
 import OverlayHeader from '../components/OverlayHeader';
 import RepeatSlider from '../components/RepeatSlider';
-import { TileManager, TileManagerMode } from '../tile/TileManager';
+import ShapeSelector from '../components/ShapeSelector';
+import { ShapeType, TileManager, TileManagerMode } from '../tile/TileManager';
 
 const DEFAULT_REPEATS = 8;
 
@@ -15,6 +16,12 @@ const Overlay: React.FC<OverlayProps> = ({ manager }) => {
     const [activeMode, setActiveMode] = useState<TileManagerMode>('add');
     const [repeats, setRepeats] = useState<number>(DEFAULT_REPEATS);
     const [baseRepeats, setBaseRepeats] = useState<number | null>(null);
+    const [activeShape, setActiveShape] = useState<ShapeType>('quad');
+
+    const handleShapeChange = (shape: ShapeType) => {
+        setActiveShape(shape);
+        manager?.setShape(shape);
+    };
 
     useEffect(() => {
         const addListener = () => {
@@ -57,6 +64,10 @@ const Overlay: React.FC<OverlayProps> = ({ manager }) => {
                 />
                 <ClearButton handleClear={handleClear} />
             </div>
+            <ShapeSelector
+                activeShape={activeShape}
+                handleShapeChange={handleShapeChange}
+            />
             <RepeatSlider
                 repeats={repeats}
                 setRepeats={repeatSliderSet}

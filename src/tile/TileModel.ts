@@ -1,3 +1,5 @@
+import { ShapeType } from './TileManager';
+
 export type Point = {
     x: number;
     y: number;
@@ -9,12 +11,7 @@ export type AnchorPoint = Point & {
 };
 
 export type Tile = {
-    corners: [
-        Point, // inner anchor
-        Point, // left anchor (counterclockwise)
-        Point, // right anchor (clockwise)
-        Point, // outer anchor
-    ];
+    corners: Point[];
     repetitions: number;
 };
 
@@ -95,22 +92,36 @@ export class TileModel {
     }
 
     setProgressTile(
-        inner: Point,
-        left: Point,
-        right: Point,
+        corners: Point[],
+        shapeType: ShapeType,
         repetitions: number,
     ) {
-        // Calculate the outer corner
-        const innerX = inner.x;
-        const innerY = inner.y;
-        const midpointX = (left.x + right.x) / 2;
-        const midpointY = (left.y + right.y) / 2;
-        const outerX = innerX + (midpointX - innerX) * 2;
-        const outerY = innerY + (midpointY - innerY) * 2;
+        if (corners.length < 3) {
+            throw new Error(
+                'Cannot set progress tile with fewer than 3 corners',
+            );
+        }
+        const cornersToUse = corners;
+        if (shapeType === 'quad') {
+            if (corners.length !== 3) {
+                throw new Error(
+                    'Invalid number of corners for parallelogram (quad)',
+                );
+            }
 
-        // Create and set the progress tile
+            // Calculate the outer corner
+            const innerX = corners[0].x;
+            const innerY = corners[0].y;
+            const midpointX = (corners[1].x + corners[2].x) / 2;
+            const midpointY = (corners[1].y + corners[2].y) / 2;
+            const outerX = innerX + (midpointX - innerX) * 2;
+            const outerY = innerY + (midpointY - innerY) * 2;
+
+            // Add outer corner to cornersToUse
+            cornersToUse.splice(2, 0, { x: outerX, y: outerY });
+        }
         this.progressTile = {
-            corners: [inner, left, right, { x: outerX, y: outerY }],
+            corners: cornersToUse,
             repetitions: repetitions,
         };
     }

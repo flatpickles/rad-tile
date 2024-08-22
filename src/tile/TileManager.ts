@@ -23,6 +23,7 @@ const REPEAT_COLOR_PROGRESS = 'rgba(0, 0, 128, 0.4)';
 const REPEAT_COLOR_STROKE = 'rgba(0, 0, 0, 1.0)';
 
 export type TileManagerMode = 'add' | 'view';
+export type ShapeType = 'quad' | 'tri' | 'free';
 export type TileManagerEvent = 'add';
 
 export class TileManager {
@@ -33,6 +34,7 @@ export class TileManager {
     private hoverPoint: Point | null = null;
     private mode: TileManagerMode = 'add';
     private repetitionCount: number = 8;
+    private shapeType: ShapeType = 'quad';
 
     constructor(canvas: HTMLCanvasElement) {
         this.canvas = canvas;
@@ -99,17 +101,25 @@ export class TileManager {
         else if (this.progressPoints.length === 1) {
             this.progressPoints.push(this.hoverPoint);
         }
-        // Add the second corner, commit & reset:
-        else if (this.progressPoints.length === 2) {
+        // Add the second corner, commit & reset if appropriate:
+        else if (this.progressPoints.length >= 2) {
+            const closingShape =
+                this.hoverPoint.x === this.progressPoints[0].x &&
+                this.hoverPoint.y === this.progressPoints[0].y;
             this.model.setProgressTile(
-                this.progressPoints[0],
-                this.progressPoints[1],
-                this.hoverPoint,
+                closingShape
+                    ? this.progressPoints
+                    : [...this.progressPoints, this.hoverPoint],
+                this.shapeType,
                 this.repetitionCount,
             );
-            this.model.commitProgressTile();
-            this.progressPoints = [];
-            this.#broadcast('add');
+            if (this.shapeType !== 'free' || closingShape) {
+                this.model.commitProgressTile();
+                this.progressPoints = [];
+                this.#broadcast('add');
+            } else {
+                this.progressPoints.push(this.hoverPoint);
+            }
         }
     }
 
@@ -125,12 +135,11 @@ export class TileManager {
             this.progressPoints.length > 0,
         );
 
-        // Set the progress tile, only if we have two points
-        if (this.progressPoints.length === 2) {
+        // Set the progress tile, only if we have two or more points
+        if (this.progressPoints.length >= 2) {
             this.model.setProgressTile(
-                this.progressPoints[0],
-                this.progressPoints[1],
-                this.hoverPoint,
+                [...this.progressPoints, this.hoverPoint],
+                this.shapeType,
                 this.repetitionCount,
             );
         }
@@ -160,17 +169,26 @@ export class TileManager {
         this.mode = mode;
     }
 
+    setShape(shape: ShapeType) {
+        this.cancelInput();
+        this.shapeType = shape;
+    }
+
     #pointOrNearestAnchor(
         x: number,
         y: number,
         includeRotations: boolean = false,
     ): [Point, boolean] {
         if (SNAPPING) {
+            const excludePoints =
+                this.shapeType === 'free' && this.progressPoints.length >= 3
+                    ? this.progressPoints.slice(1)
+                    : this.progressPoints;
             const nearest = this.model.getNearestAnchor(
                 x,
                 y,
                 SNAP_DISTANCE / this.zoom,
-                this.progressPoints,
+                excludePoints,
                 includeRotations,
             );
             return [nearest ?? { x, y }, nearest !== null];
@@ -207,9 +225,9 @@ export class TileManager {
             .forEach((rotatedPoints) => {
                 context.beginPath();
                 context.moveTo(rotatedPoints[0].x, rotatedPoints[0].y);
-                context.lineTo(rotatedPoints[1].x, rotatedPoints[1].y);
-                context.lineTo(rotatedPoints[3].x, rotatedPoints[3].y);
-                context.lineTo(rotatedPoints[2].x, rotatedPoints[2].y);
+                for (let i = 1; i < rotatedPoints.length; i++) {
+                    context.lineTo(rotatedPoints[i].x, rotatedPoints[i].y);
+                }
                 context.closePath();
                 context.fill();
                 context.stroke();
@@ -225,18 +243,12 @@ export class TileManager {
                         rotatedProgressPoints[0].x,
                         rotatedProgressPoints[0].y,
                     );
-                    context.lineTo(
-                        rotatedProgressPoints[1].x,
-                        rotatedProgressPoints[1].y,
-                    );
-                    context.lineTo(
-                        rotatedProgressPoints[3].x,
-                        rotatedProgressPoints[3].y,
-                    );
-                    context.lineTo(
-                        rotatedProgressPoints[2].x,
-                        rotatedProgressPoints[2].y,
-                    );
+                    for (let i = 1; i < rotatedProgressPoints.length; i++) {
+                        context.lineTo(
+                            rotatedProgressPoints[i].x,
+                            rotatedProgressPoints[i].y,
+                        );
+                    }
                     context.closePath();
                     context.fill();
                     context.stroke();
@@ -250,9 +262,9 @@ export class TileManager {
         this.model.tiles.forEach((tile) => {
             context.beginPath();
             context.moveTo(tile.corners[0].x, tile.corners[0].y);
-            context.lineTo(tile.corners[1].x, tile.corners[1].y);
-            context.lineTo(tile.corners[3].x, tile.corners[3].y);
-            context.lineTo(tile.corners[2].x, tile.corners[2].y);
+            for (let i = 1; i < tile.corners.length; i++) {
+                context.lineTo(tile.corners[i].x, tile.corners[i].y);
+            }
             context.closePath();
             context.fill();
             context.stroke();
@@ -266,18 +278,12 @@ export class TileManager {
                 this.model.progressTile.corners[0].x,
                 this.model.progressTile.corners[0].y,
             );
-            context.lineTo(
-                this.model.progressTile.corners[1].x,
-                this.model.progressTile.corners[1].y,
-            );
-            context.lineTo(
-                this.model.progressTile.corners[3].x,
-                this.model.progressTile.corners[3].y,
-            );
-            context.lineTo(
-                this.model.progressTile.corners[2].x,
-                this.model.progressTile.corners[2].y,
-            );
+            for (let i = 1; i < this.model.progressTile.corners.length; i++) {
+                context.lineTo(
+                    this.model.progressTile.corners[i].x,
+                    this.model.progressTile.corners[i].y,
+                );
+            }
             context.closePath();
             context.fill();
             context.stroke();
