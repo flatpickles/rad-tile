@@ -1,10 +1,5 @@
+import { Point, rotatePoint, rotatePoints } from '../util/Geometry';
 import { ShapeType } from './TileManager';
-
-export type Point = {
-    x: number;
-    y: number;
-    // todo: track connected tiles for deletion?
-};
 
 export type AnchorPoint = Point & {
     repetitions: number;
@@ -15,22 +10,11 @@ export type Tile = {
     repetitions: number;
 };
 
-export function rotateTile(tile: Tile, angle: number): Point[] {
-    return tile.corners.map((corner) => rotatePoint(corner, angle));
-}
-
-export function rotatePoint(point: Point, angle: number): Point {
-    return {
-        x: point.x * Math.cos(angle) - point.y * Math.sin(angle),
-        y: point.x * Math.sin(angle) + point.y * Math.cos(angle),
-    };
-}
-
-export function allTileRotations(tile: Tile): Point[][] {
+export function tileRotationPoints(tile: Tile): Point[][] {
     const rotatedTilePoints: Point[][] = [];
     const alphaStep = (2 * Math.PI) / tile.repetitions;
     for (let alpha = alphaStep; alpha < 2 * Math.PI; alpha += alphaStep) {
-        const rotatedTile = rotateTile(tile, alpha);
+        const rotatedTile = rotatePoints(tile.corners, alpha);
         rotatedTilePoints.push(rotatedTile);
     }
     return rotatedTilePoints;

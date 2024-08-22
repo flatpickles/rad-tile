@@ -1,4 +1,5 @@
-import { allTileRotations, Point, TileModel } from './TileModel';
+import { Point } from '../util/Geometry';
+import { TileModel, tileRotationPoints } from './TileModel';
 
 const SNAPPING = true; // todo: parameterize
 
@@ -32,6 +33,8 @@ export class TileManager {
     private zoom: number = 1;
     private progressPoints: Point[] = [];
     private hoverPoint: Point | null = null;
+
+    // todo: centralize default values
     private mode: TileManagerMode = 'add';
     private repetitionCount: number = 8;
     private shapeType: ShapeType = 'quad';
@@ -231,7 +234,7 @@ export class TileManager {
         context.fillStyle =
             this.mode === 'add' ? REPEAT_COLOR_TILE : ACTIVE_COLOR_TILE;
         this.model.tiles
-            .flatMap((tile) => allTileRotations(tile)) // todo memoize?
+            .flatMap((tile) => tileRotationPoints(tile)) // todo memoize?
             .forEach((rotatedPoints) => {
                 context.beginPath();
                 context.moveTo(rotatedPoints[0].x, rotatedPoints[0].y);
@@ -246,7 +249,7 @@ export class TileManager {
         // Draw progress tile repeats below active area
         if (this.model.progressTile) {
             context.fillStyle = REPEAT_COLOR_PROGRESS;
-            allTileRotations(this.model.progressTile).forEach(
+            tileRotationPoints(this.model.progressTile).forEach(
                 (rotatedProgressPoints) => {
                     context.beginPath();
                     context.moveTo(
