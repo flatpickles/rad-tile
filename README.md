@@ -4,8 +4,17 @@ This is a lightweight tool for easily making radial tile patterns, like the [San
 
 ## short todo:
 
+-   deleting todo:
+
+    -   set base to min repeat of all tiles
+    -   double check rotation/repetition/shape values
+    -   double check usage of AnchorPoint in TileManager
+    -   make "repetition" naming consistent
+    -   test with overlapping shapes
+    -   unselect shape when mousing out // after timeout
+    -   UI stuff (maybe just renaming mode to "Build")
+
 -   snap to angles (adjustable, based on repeat count & relative center position)
--   delete tiles (remove mode; set base to min repeat of all tiles)
 -   color schemes (randomize?)
 -   confirm no duplicate points (from anchor set)
 -   break down TileManager

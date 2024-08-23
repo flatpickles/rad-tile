@@ -1,7 +1,9 @@
-import { Point } from '../util/Geometry';
-import { TileModel, tileRotationPoints } from './TileModel';
-
-const SNAPPING = true; // todo: parameterize
+import {
+    AnchorPoint,
+    newAnchor,
+    TileModel,
+    tileRotationPoints,
+} from './TileModel';
 
 // Zoom constants
 const ZOOM_FACTOR = 0.01;
@@ -17,6 +19,7 @@ const SNAP_DISTANCE = 40;
 const ANCHOR_COLOR = 'rgba(0, 128, 0, 1.0)';
 const ANCHOR_COLOR_ACTIVE = 'rgba(0, 216, 0, 1.0)';
 const ACTIVE_COLOR_TILE = 'rgba(128, 0, 128, 1.0)';
+const ACTIVE_COLOR_DELETE = 'rgba(216, 0, 0, 1.0)';
 const ACTIVE_COLOR_PROGRESS = 'rgba(0, 0, 128, 1.0)';
 const ACTIVE_COLOR_STROKE = 'rgba(0, 0, 0, 1.0)';
 const REPEAT_COLOR_TILE = 'rgba(128, 0, 128, 0.4)';
@@ -31,8 +34,9 @@ export class TileManager {
     private model: TileModel = new TileModel();
     private canvas: HTMLCanvasElement;
     private zoom: number = 1;
-    private progressPoints: Point[] = [];
-    private hoverPoint: Point | null = null;
+    private progressPoints: AnchorPoint[] = [];
+    private hoverPoint: AnchorPoint | null = null;
+    private selectedTileIndex: number | null = null;
 
     // todo: centralize default values
     private mode: TileManagerMode = 'add';
@@ -93,11 +97,27 @@ export class TileManager {
         );
         this.hoverPoint = hoverPoint;
 
-        // Start a new tile:
+        // Start a new tile, or select an existing one:
         if (this.progressPoints.length === 0) {
             // Find the nearest anchor point to start from
             if (hoverIsAnchor) {
                 this.progressPoints.push(this.hoverPoint);
+            } else {
+                // Select the nearest tile
+                const newSelectedTileIndex = this.model.getNearestTileIndex(
+                    this.hoverPoint.x,
+                    this.hoverPoint.y,
+                );
+                // Change the selected tile, or remove it if it's already selected
+                if (
+                    newSelectedTileIndex !== null &&
+                    this.selectedTileIndex === newSelectedTileIndex
+                ) {
+                    this.model.removeTileAtIndex(this.selectedTileIndex);
+                    this.selectedTileIndex = null;
+                } else {
+                    this.selectedTileIndex = newSelectedTileIndex;
+                }
             }
         }
         // Add the first corner:
@@ -161,6 +181,8 @@ export class TileManager {
     cancelInput() {
         this.progressPoints = [];
         this.model.progressTile = null;
+        this.selectedTileIndex = null;
+        this.hoverPoint = null;
     }
 
     // State handling
@@ -175,6 +197,7 @@ export class TileManager {
     clear() {
         this.model.clear();
         this.zoom = 1;
+        this.cancelInput();
     }
 
     setMode(mode: TileManagerMode) {
@@ -191,22 +214,23 @@ export class TileManager {
         x: number,
         y: number,
         includeRotations: boolean = false,
-    ): [Point, boolean] {
-        if (SNAPPING) {
-            const excludePoints =
-                this.shapeType === 'free' && this.progressPoints.length >= 3
-                    ? this.progressPoints.slice(1)
-                    : this.progressPoints;
-            const nearest = this.model.getNearestAnchor(
-                x,
-                y,
-                SNAP_DISTANCE / this.zoom,
-                excludePoints,
-                includeRotations,
-            );
-            return [nearest ?? { x, y }, nearest !== null];
-        }
-        return [{ x, y }, false];
+    ): [AnchorPoint, boolean] {
+        const excludePoints =
+            this.shapeType === 'free' && this.progressPoints.length >= 3
+                ? this.progressPoints.slice(1)
+                : this.progressPoints;
+        const nearest = this.model.getNearestAnchor(
+            x,
+            y,
+            SNAP_DISTANCE / this.zoom,
+            excludePoints,
+            includeRotations,
+            this.repetitionCount,
+        );
+        return [
+            nearest ?? newAnchor({ x, y }, this.repetitionCount),
+            nearest !== null,
+        ];
     }
 
     // Rendering
@@ -272,7 +296,11 @@ export class TileManager {
         // Existing tiles (in active area)
         context.strokeStyle = ACTIVE_COLOR_STROKE;
         context.fillStyle = ACTIVE_COLOR_TILE;
-        this.model.tiles.forEach((tile) => {
+        this.model.tiles.forEach((tile, index) => {
+            context.fillStyle =
+                index === this.selectedTileIndex
+                    ? ACTIVE_COLOR_DELETE
+                    : ACTIVE_COLOR_TILE;
             context.beginPath();
             context.moveTo(tile.corners[0].x, tile.corners[0].y);
             for (let i = 1; i < tile.corners.length; i++) {
