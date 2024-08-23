@@ -7,30 +7,26 @@ import {
 import { ShapeType } from './TileManager';
 
 export type AnchorPoint = Point & {
-    repetitions: number;
+    repeats: number;
     shapes: number;
 };
 
-export function newAnchor(
-    point: Point,
-    repetitions: number,
-    shapes = 1,
-): AnchorPoint {
+export function newAnchor(point: Point, repeats = 1, shapes = 1): AnchorPoint {
     return {
         ...point,
-        repetitions,
+        repeats: repeats,
         shapes,
     };
 }
 
 export type Tile = {
     corners: AnchorPoint[];
-    repetitions: number;
+    repeats: number;
 };
 
 export function tileRotationPoints(tile: Tile): Point[][] {
     const rotatedTilePoints: Point[][] = [];
-    const alphaStep = (2 * Math.PI) / tile.repetitions;
+    const alphaStep = (2 * Math.PI) / tile.repeats;
     for (let alpha = alphaStep; alpha < 2 * Math.PI; alpha += alphaStep) {
         const rotatedTile = rotatePoints(tile.corners, alpha);
         rotatedTilePoints.push(rotatedTile);
@@ -40,7 +36,7 @@ export function tileRotationPoints(tile: Tile): Point[][] {
 
 export class TileModel {
     anchors: Set<AnchorPoint> = new Set([
-        { x: 0, y: 0, repetitions: 0, shapes: 0 },
+        { x: 0, y: 0, repeats: 1, shapes: 0 },
     ]);
     tiles: Tile[] = [];
     progressTile: Tile | null = null;
@@ -50,42 +46,39 @@ export class TileModel {
         y: number,
         withinDistance = Infinity,
         excludePoints: Point[] = [],
-        includeRotations = false,
-        rotationsForNewTile = 0,
+        includeRepeats = false,
+        newAnchorRepeats = 1,
     ): AnchorPoint | null {
         const pointsToCheck: Set<AnchorPoint> = new Set(this.anchors);
-        if (includeRotations) {
-            // Add rotations of anchors
+        if (includeRepeats) {
+            // Add repeats of anchors
             this.anchors.forEach((anchor) => {
-                if (anchor.repetitions <= 1) return;
-                const alphaStep = (2 * Math.PI) / anchor.repetitions;
+                if (anchor.repeats <= 1) return;
+                const alphaStep = (2 * Math.PI) / anchor.repeats;
                 pointsToCheck.add(
-                    newAnchor(
-                        rotatePoint(anchor, alphaStep),
-                        rotationsForNewTile,
-                    ),
+                    newAnchor(rotatePoint(anchor, alphaStep), newAnchorRepeats),
                 );
                 pointsToCheck.add(
                     newAnchor(
                         rotatePoint(anchor, -alphaStep),
-                        rotationsForNewTile,
+                        newAnchorRepeats,
                     ),
                 );
             });
-            // Add rotations of progress tile corners
-            if (this.progressTile && this.progressTile.repetitions > 1) {
-                const alphaStep = (2 * Math.PI) / this.progressTile.repetitions;
+            // Add repeats of progress tile corners
+            if (this.progressTile && this.progressTile.repeats > 1) {
+                const alphaStep = (2 * Math.PI) / this.progressTile.repeats;
                 this.progressTile.corners.forEach((corner) => {
                     pointsToCheck.add(
                         newAnchor(
                             rotatePoint(corner, alphaStep),
-                            rotationsForNewTile,
+                            newAnchorRepeats,
                         ),
                     );
                     pointsToCheck.add(
                         newAnchor(
                             rotatePoint(corner, -alphaStep),
-                            rotationsForNewTile,
+                            newAnchorRepeats,
                         ),
                     );
                 });
@@ -139,7 +132,7 @@ export class TileModel {
     setProgressTile(
         corners: AnchorPoint[],
         shapeType: ShapeType,
-        repetitions: number,
+        repeats: number,
     ) {
         if (corners.length < 3) {
             throw new Error(
@@ -166,12 +159,12 @@ export class TileModel {
             cornersToUse.splice(
                 2,
                 0,
-                newAnchor({ x: outerX, y: outerY }, repetitions),
+                newAnchor({ x: outerX, y: outerY }, repeats),
             );
         }
         this.progressTile = {
             corners: cornersToUse,
-            repetitions: repetitions,
+            repeats,
         };
     }
 
@@ -181,21 +174,20 @@ export class TileModel {
         }
 
         // Add the new tile, and corners as anchors
-        const progressTile = this.progressTile;
-        this.tiles.push(progressTile);
-        progressTile.corners.forEach((corner) => {
+        this.progressTile.corners.forEach((corner) => {
             if (this.anchors.has(corner)) {
                 corner.shapes++;
             } else {
                 this.anchors.add(corner);
             }
         });
+        this.tiles.push(this.progressTile);
         this.progressTile = null;
     }
 
     clear() {
         this.tiles = [];
-        this.anchors = new Set([{ x: 0, y: 0, repetitions: 0, shapes: 0 }]);
+        this.anchors = new Set([{ x: 0, y: 0, repeats: 1, shapes: 0 }]);
         this.progressTile = null;
     }
 }

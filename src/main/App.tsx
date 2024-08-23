@@ -8,7 +8,7 @@ const App: React.FC = () => {
     const [manager, setManager] = useState<TileManager | null>(null);
 
     return (
-        <div className="relative h-screen w-screen">
+        <div className="relative h-screen w-screen select-none">
             <Canvas setManager={setManager} />
             <Overlay manager={manager} />
         </div>

@@ -43,7 +43,7 @@ const Overlay: React.FC<OverlayProps> = ({ manager }) => {
 
     const repeatSliderSet = (repeatCount: number) => {
         setRepeats(repeatCount);
-        manager?.setRepetitionCount(repeatCount);
+        manager?.setRepeats(repeatCount);
     };
 
     const handleClear = () => {
@@ -51,7 +51,7 @@ const Overlay: React.FC<OverlayProps> = ({ manager }) => {
         handleModeChange('add');
         setBaseRepeats(null);
         setRepeats(DEFAULT_REPEATS);
-        manager?.setRepetitionCount(DEFAULT_REPEATS);
+        manager?.setRepeats(DEFAULT_REPEATS);
     };
 
     return (

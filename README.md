@@ -7,9 +7,6 @@ This is a lightweight tool for easily making radial tile patterns, like the [San
 -   deleting todo:
 
     -   set base to min repeat of all tiles
-    -   double check rotation/repetition/shape values
-    -   double check usage of AnchorPoint in TileManager
-    -   make "repetition" naming consistent
     -   test with overlapping shapes
     -   unselect shape when mousing out // after timeout
     -   UI stuff (maybe just renaming mode to "Build")
@@ -20,6 +17,7 @@ This is a lightweight tool for easily making radial tile patterns, like the [San
 -   break down TileManager
 -   info screen
 -   typography, theme colors, dark mode, assorted styling
+-   smooth mouse wheel scrolling
 
 ## long todo:
 
@@ -27,7 +25,11 @@ This is a lightweight tool for easily making radial tile patterns, like the [San
 -   disable internal points for starting / snapping (track hull)
 -   reflection across repeat increments? (for even repeat counts, resetting base?)
 -   equilateral mode (during add, for quad & tri)
--   hotkeys: repeat count, equilateral, shape, etc
+-   hotkeys:
+    -   repeat count
+    -   equilateral
+    -   shape type
+    -   quad: swap inference direction
 -   snap to edges / hull
 -   snap relative points in progress tile
 -   prevent adding shapes that overlap // better overlap behavior

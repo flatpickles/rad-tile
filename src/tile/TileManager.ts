@@ -40,7 +40,7 @@ export class TileManager {
 
     // todo: centralize default values
     private mode: TileManagerMode = 'add';
-    private repetitionCount: number = 8;
+    private repeats: number = 8;
     private shapeType: ShapeType = 'quad';
 
     constructor(canvas: HTMLCanvasElement) {
@@ -134,7 +134,7 @@ export class TileManager {
                     ? this.progressPoints
                     : [...this.progressPoints, this.hoverPoint],
                 this.shapeType,
-                this.repetitionCount,
+                this.repeats,
             );
             if (this.shapeType !== 'free' || closingShape || complete) {
                 this.model.commitProgressTile();
@@ -173,7 +173,7 @@ export class TileManager {
             this.model.setProgressTile(
                 [...this.progressPoints, this.hoverPoint],
                 this.shapeType,
-                this.repetitionCount,
+                this.repeats,
             );
         }
     }
@@ -187,10 +187,10 @@ export class TileManager {
 
     // State handling
 
-    setRepetitionCount(repetitionCount: number) {
-        this.repetitionCount = repetitionCount;
+    setRepeats(repeats: number) {
+        this.repeats = repeats;
         if (this.model.progressTile) {
-            this.model.progressTile.repetitions = this.repetitionCount;
+            this.model.progressTile.repeats = this.repeats;
         }
     }
 
@@ -213,7 +213,7 @@ export class TileManager {
     #pointOrNearestAnchor(
         x: number,
         y: number,
-        includeRotations: boolean = false,
+        includeRepeats: boolean = false,
     ): [AnchorPoint, boolean] {
         const excludePoints =
             this.shapeType === 'free' && this.progressPoints.length >= 3
@@ -224,13 +224,10 @@ export class TileManager {
             y,
             SNAP_DISTANCE / this.zoom,
             excludePoints,
-            includeRotations,
-            this.repetitionCount,
+            includeRepeats,
+            this.repeats,
         );
-        return [
-            nearest ?? newAnchor({ x, y }, this.repetitionCount),
-            nearest !== null,
-        ];
+        return [nearest ?? newAnchor({ x, y }, this.repeats), nearest !== null];
     }
 
     // Rendering
