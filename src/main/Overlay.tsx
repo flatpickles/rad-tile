@@ -4,7 +4,12 @@ import ModeSelector from '../components/ModeSelector';
 import OverlayHeader from '../components/OverlayHeader';
 import RepeatSlider from '../components/RepeatSlider';
 import ShapeSelector from '../components/ShapeSelector';
-import { ShapeType, TileManager, TileManagerMode } from '../tile/TileManager';
+import {
+    ShapeType,
+    TileManager,
+    TileManagerEvent,
+    TileManagerMode,
+} from '../tile/TileManager';
 
 const DEFAULT_REPEATS = 8;
 
@@ -24,15 +29,19 @@ const Overlay: React.FC<OverlayProps> = ({ manager }) => {
     };
 
     useEffect(() => {
-        const addListener = () => {
-            setBaseRepeats(repeats);
+        const addRemoveListener = (event: TileManagerEvent) => {
+            setBaseRepeats(
+                event.newMinRepeats !== Infinity ? event.newMinRepeats : null,
+            );
         };
 
         if (manager) {
-            manager.addEventListener('add', addListener);
+            manager.addEventListener('add', addRemoveListener);
+            manager.addEventListener('remove', addRemoveListener);
         }
         return () => {
-            manager?.removeEventListener('add', addListener);
+            manager?.removeEventListener('add', addRemoveListener);
+            manager?.removeEventListener('remove', addRemoveListener);
         };
     }, [manager, baseRepeats, repeats]);
 

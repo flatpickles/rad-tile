@@ -28,7 +28,12 @@ const REPEAT_COLOR_STROKE = 'rgba(0, 0, 0, 1.0)';
 
 export type TileManagerMode = 'add' | 'view';
 export type ShapeType = 'quad' | 'tri' | 'free';
-export type TileManagerEvent = 'add';
+
+export type TileManagerEventType = 'add' | 'remove';
+export type TileManagerEvent = {
+    type: TileManagerEventType;
+    newMinRepeats: number;
+};
 
 export class TileManager {
     private model: TileModel = new TileModel();
@@ -52,7 +57,7 @@ export class TileManager {
     listeners: { [event: string]: ((event: TileManagerEvent) => void)[] } = {};
 
     addEventListener(
-        event: TileManagerEvent,
+        event: TileManagerEventType,
         listener: (event: TileManagerEvent) => void,
     ) {
         if (!this.listeners[event]) {
@@ -71,7 +76,7 @@ export class TileManager {
     }
 
     #broadcast(event: TileManagerEvent) {
-        this.listeners[event]?.forEach((listener) => listener(event));
+        this.listeners[event.type]?.forEach((listener) => listener(event));
     }
 
     // Input handling
@@ -115,6 +120,10 @@ export class TileManager {
                 ) {
                     this.model.removeTileAtIndex(this.selectedTileIndex);
                     this.selectedTileIndex = null;
+                    this.#broadcast({
+                        type: 'remove',
+                        newMinRepeats: this.model.minRepeats,
+                    });
                 } else {
                     this.selectedTileIndex = newSelectedTileIndex;
                 }
@@ -139,7 +148,10 @@ export class TileManager {
             if (this.shapeType !== 'free' || closingShape || complete) {
                 this.model.commitProgressTile();
                 this.progressPoints = [];
-                this.#broadcast('add');
+                this.#broadcast({
+                    type: 'add',
+                    newMinRepeats: this.model.minRepeats,
+                });
             } else {
                 this.progressPoints.push(this.hoverPoint);
             }

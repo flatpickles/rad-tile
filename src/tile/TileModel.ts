@@ -40,6 +40,7 @@ export class TileModel {
     ]);
     tiles: Tile[] = [];
     progressTile: Tile | null = null;
+    minRepeats: number = Infinity;
 
     getNearestAnchor(
         x: number,
@@ -127,6 +128,12 @@ export class TileModel {
                 this.anchors.delete(corner);
             }
         });
+        // Update minRepeats
+        let newMinRepeats = Infinity;
+        this.tiles.forEach((tile) => {
+            newMinRepeats = Math.min(newMinRepeats, tile.repeats);
+        });
+        this.minRepeats = newMinRepeats;
     }
 
     setProgressTile(
@@ -182,6 +189,7 @@ export class TileModel {
             }
         });
         this.tiles.push(this.progressTile);
+        this.minRepeats = Math.min(this.minRepeats, this.progressTile.repeats);
         this.progressTile = null;
     }
 
@@ -189,5 +197,6 @@ export class TileModel {
         this.tiles = [];
         this.anchors = new Set([{ x: 0, y: 0, repeats: 1, shapes: 0 }]);
         this.progressTile = null;
+        this.minRepeats = Infinity;
     }
 }
