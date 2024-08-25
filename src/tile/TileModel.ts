@@ -111,7 +111,7 @@ export class TileModel {
     }
 
     getNearestTileIndex(x: number, y: number): number | null {
-        for (let i = 0; i < this.tiles.length; i++) {
+        for (let i = this.tiles.length - 1; i >= 0; i--) {
             if (isPointInShape({ x, y }, this.tiles[i].corners)) {
                 return i;
             }

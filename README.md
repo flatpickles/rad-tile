@@ -6,7 +6,6 @@ This is a lightweight tool for easily making radial tile patterns, like the [San
 
 -   deleting todo:
 
-    -   test with overlapping shapes
     -   unselect shape when mousing out // after timeout
     -   UI stuff (maybe just renaming mode to "Build")
 
