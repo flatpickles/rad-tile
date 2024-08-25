@@ -12,16 +12,16 @@ const ModeSelector: React.FC<ModeSelectorProps> = ({
     return (
         <div className="join w-full">
             <button
-                className={`join-item btn btn-sm flex-grow ${activeMode === 'add' ? 'btn-active' : ''}`}
-                onClick={() => handleModeChange('add')}
+                className={`join-item btn btn-sm flex-grow ${activeMode === 'build' ? 'btn-active' : ''}`}
+                onClick={() => handleModeChange('build')}
             >
-                Add
+                Build
             </button>
             <button
-                className={`join-item btn btn-sm flex-grow ${activeMode === 'view' ? 'btn-active' : ''}`}
-                onClick={() => handleModeChange('view')}
+                className={`join-item btn btn-sm flex-grow ${activeMode === 'paint' ? 'btn-active' : ''}`}
+                onClick={() => handleModeChange('paint')}
             >
-                View
+                Paint
             </button>
         </div>
     );

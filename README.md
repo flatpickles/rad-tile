@@ -4,17 +4,12 @@ This is a lightweight tool for easily making radial tile patterns, like the [San
 
 ## short todo:
 
--   deleting todo:
-
-    -   unselect shape when mousing out // after timeout
-    -   UI stuff (maybe just renaming mode to "Build")
-
+-   deleting: hover, unselect shape when mousing out // after timeout
 -   snap to angles (adjustable, based on repeat count & relative center position)
--   color schemes (randomize?)
+-   paint mode: select palette and apply colors (new shapes random color from palette)
 -   confirm no duplicate points (from anchor set)
 -   break down TileManager
 -   info screen
--   typography, theme colors, dark mode, assorted styling
 -   smooth mouse wheel scrolling
 
 ## long todo:
@@ -37,3 +32,4 @@ This is a lightweight tool for easily making radial tile patterns, like the [San
 -   ux: better completion instructions for free polygon
 -   undo / redo
 -   image + svg export
+-   perhaps punch up typography, theme colors, dark mode, assorted styling

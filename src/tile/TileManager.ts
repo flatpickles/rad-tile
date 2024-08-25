@@ -26,7 +26,7 @@ const REPEAT_COLOR_TILE = 'rgba(128, 0, 128, 0.4)';
 const REPEAT_COLOR_PROGRESS = 'rgba(0, 0, 128, 0.4)';
 const REPEAT_COLOR_STROKE = 'rgba(0, 0, 0, 1.0)';
 
-export type TileManagerMode = 'add' | 'view';
+export type TileManagerMode = 'build' | 'paint';
 export type ShapeType = 'quad' | 'tri' | 'free';
 
 export type TileManagerEventType = 'add' | 'remove';
@@ -44,7 +44,7 @@ export class TileManager {
     private selectedTileIndex: number | null = null;
 
     // todo: centralize default values
-    private mode: TileManagerMode = 'add';
+    private mode: TileManagerMode = 'build';
     private repeats: number = 8;
     private shapeType: ShapeType = 'quad';
 
@@ -88,7 +88,7 @@ export class TileManager {
     }
 
     inputSelect(x: number, y: number, complete = false) {
-        if (this.mode === 'view') return;
+        if (this.mode === 'paint') return;
 
         // Translate the input coordinates to the canvas coordinates, incorporating the zoom level
         const canvasX = (x - this.canvas.width / 2) / this.zoom;
@@ -160,7 +160,7 @@ export class TileManager {
 
     inputContextSelect(x: number, y: number): boolean {
         // Finish shape if we have two or more points
-        if (this.mode === 'add' && this.progressPoints.length >= 2) {
+        if (this.mode === 'build' && this.progressPoints.length >= 2) {
             this.inputSelect(x, y, true);
             return true;
         }
@@ -169,7 +169,7 @@ export class TileManager {
     }
 
     inputMove(x: number, y: number) {
-        if (this.mode === 'view') return;
+        if (this.mode === 'paint') return;
 
         // Translate the input coordinates to the canvas coordinates, incorporating the zoom level
         const canvasX = (x - this.canvas.width / 2) / this.zoom;
@@ -263,9 +263,9 @@ export class TileManager {
 
         // Draw existing repeats below active area
         context.strokeStyle =
-            this.mode === 'add' ? REPEAT_COLOR_STROKE : ACTIVE_COLOR_STROKE;
+            this.mode === 'build' ? REPEAT_COLOR_STROKE : ACTIVE_COLOR_STROKE;
         context.fillStyle =
-            this.mode === 'add' ? REPEAT_COLOR_TILE : ACTIVE_COLOR_TILE;
+            this.mode === 'build' ? REPEAT_COLOR_TILE : ACTIVE_COLOR_TILE;
         this.model.tiles
             .flatMap((tile) => tileRotationPoints(tile)) // todo memoize?
             .forEach((rotatedPoints) => {
@@ -339,7 +339,7 @@ export class TileManager {
             context.stroke();
         }
 
-        if (this.mode === 'add') {
+        if (this.mode === 'build') {
             // Draw the progress OR the available anchors
             const scaledHandleSize = HANDLE_SIZE / this.zoom; // constant across zoom levels
             if (this.progressPoints.length > 0 && this.hoverPoint) {

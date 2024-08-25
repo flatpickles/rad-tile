@@ -18,7 +18,7 @@ interface OverlayProps {
 }
 
 const Overlay: React.FC<OverlayProps> = ({ manager }) => {
-    const [activeMode, setActiveMode] = useState<TileManagerMode>('add');
+    const [activeMode, setActiveMode] = useState<TileManagerMode>('build');
     const [repeats, setRepeats] = useState<number>(DEFAULT_REPEATS);
     const [baseRepeats, setBaseRepeats] = useState<number | null>(null);
     const [activeShape, setActiveShape] = useState<ShapeType>('quad');
@@ -57,7 +57,7 @@ const Overlay: React.FC<OverlayProps> = ({ manager }) => {
 
     const handleClear = () => {
         manager?.clear();
-        handleModeChange('add');
+        handleModeChange('build');
         setBaseRepeats(null);
         setRepeats(DEFAULT_REPEATS);
         manager?.setRepeats(DEFAULT_REPEATS);
@@ -73,15 +73,22 @@ const Overlay: React.FC<OverlayProps> = ({ manager }) => {
                 />
                 <ClearButton handleClear={handleClear} />
             </div>
-            <ShapeSelector
-                activeShape={activeShape}
-                handleShapeChange={handleShapeChange}
-            />
-            <RepeatSlider
-                repeats={repeats}
-                setRepeats={repeatSliderSet}
-                baseRepeats={baseRepeats}
-            />
+            {activeMode === 'build' && (
+                <>
+                    <ShapeSelector
+                        activeShape={activeShape}
+                        handleShapeChange={handleShapeChange}
+                    />
+                    <RepeatSlider
+                        repeats={repeats}
+                        setRepeats={repeatSliderSet}
+                        baseRepeats={baseRepeats}
+                    />
+                </>
+            )}
+            {activeMode === 'paint' && (
+                <p className="text-center">Painting tools coming soon.</p>
+            )}
         </div>
     );
 };
