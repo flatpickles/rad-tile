@@ -11,6 +11,9 @@ This is a lightweight tool for easily making radial tile patterns, like the [San
 -   break down TileManager
 -   info screen
 -   smooth mouse wheel scrolling
+-   cursor updates over canvas
+-   handle possible errors from polygon-clipping
+-   do we really need polygon-clipping?
 
 ## long todo:
 
@@ -25,8 +28,9 @@ This is a lightweight tool for easily making radial tile patterns, like the [San
     -   quad: swap inference direction
 -   snap to edges / hull
 -   snap relative points in progress tile
--   prevent adding shapes that overlap // better overlap behavior
--   mobile layout & UX
+-   mobile layout & UX (tap & drag)
+    -   cancel input? (e.g. non-committable free shape)
+-   allow overlaps, but cut out overlapped shapes when applying
 -   no overlap mode: snap to edges + remove fully utilized anchors
 -   persistence for config + tiles (local storage)
 -   ux: better completion instructions for free polygon

@@ -1,4 +1,7 @@
+import PolygonClipping from 'polygon-clipping';
+
 import {
+    isLineIntersectingShape,
     isPointInShape,
     Point,
     rotatePoint,
@@ -110,6 +113,49 @@ export class TileModel {
         return nearestAnchor;
     }
 
+    canCommitTile(tile: Tile): boolean {
+        // todo: make more efficient (memoize rotations, avoid excessive maps etc)
+        const newShape: PolygonClipping.Geom = [
+            [tile.corners.map((c) => [c.x, c.y])],
+        ];
+        // Start with the rotations of the new tile
+        const testShapes: PolygonClipping.Geom[] = tileRotationPoints(tile).map(
+            (rotatedTile) => [[rotatedTile.map((c) => [c.x, c.y])]],
+        );
+        // Add all tiles and their rotations
+        this.tiles.forEach((tile) => {
+            testShapes.push([[tile.corners.map((c) => [c.x, c.y])]]);
+            const rotatedTiles = tileRotationPoints(tile);
+            rotatedTiles.forEach((rotatedTile) => {
+                testShapes.push([[rotatedTile.map((c) => [c.x, c.y])]]);
+            });
+        });
+        // Check for intersections
+        for (const testShape of testShapes) {
+            const intersection = PolygonClipping.intersection(
+                newShape,
+                testShape,
+            );
+            if (intersection.length > 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    canCommitLine(line: [Point, Point]): boolean {
+        const testShapes: Point[][] = [
+            ...this.tiles.map((tile) => tile.corners),
+            ...this.tiles.flatMap((tile) => tileRotationPoints(tile)),
+        ];
+        for (const testShape of testShapes) {
+            if (isLineIntersectingShape(line[0], line[1], testShape)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     getNearestTileIndex(x: number, y: number): number | null {
         for (let i = this.tiles.length - 1; i >= 0; i--) {
             if (isPointInShape({ x, y }, this.tiles[i].corners)) {
@@ -140,7 +186,7 @@ export class TileModel {
         corners: AnchorPoint[],
         shapeType: ShapeType,
         repeats: number,
-    ) {
+    ): boolean {
         if (corners.length < 3) {
             throw new Error(
                 'Cannot set progress tile with fewer than 3 corners',
@@ -173,6 +219,7 @@ export class TileModel {
             corners: cornersToUse,
             repeats,
         };
+        return this.canCommitTile(this.progressTile);
     }
 
     commitProgressTile() {

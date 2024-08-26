@@ -18,6 +18,7 @@ const SNAP_DISTANCE = 40;
 // Color constants
 const ANCHOR_COLOR = 'rgba(0, 128, 0, 1.0)';
 const ANCHOR_COLOR_ACTIVE = 'rgba(0, 216, 0, 1.0)';
+const ANCHOR_COLOR_DISABLED = 'rgba(256, 0, 0, 1.0)';
 const ACTIVE_COLOR_TILE = 'rgba(128, 0, 128, 1.0)';
 const ACTIVE_COLOR_DELETE = 'rgba(216, 0, 0, 1.0)';
 const ACTIVE_COLOR_PROGRESS = 'rgba(0, 0, 128, 1.0)';
@@ -42,6 +43,7 @@ export class TileManager {
     private progressPoints: AnchorPoint[] = [];
     private hoverPoint: AnchorPoint | null = null;
     private selectedTileIndex: number | null = null;
+    private canCommit: boolean = true;
 
     // todo: centralize default values
     private mode: TileManagerMode = 'build';
@@ -87,7 +89,7 @@ export class TileManager {
         this.zoom = Math.min(this.zoom, ZOOM_MAX);
     }
 
-    inputSelect(x: number, y: number, complete = false) {
+    inputSelect(x: number, y: number, completeShape = false) {
         if (this.mode === 'paint') return;
 
         // Translate the input coordinates to the canvas coordinates, incorporating the zoom level
@@ -130,7 +132,7 @@ export class TileManager {
             }
         }
         // Add the first corner:
-        else if (this.progressPoints.length === 1) {
+        else if (this.progressPoints.length === 1 && this.canCommit) {
             this.progressPoints.push(this.hoverPoint);
         }
         // Add the second corner, commit & reset if appropriate:
@@ -138,14 +140,15 @@ export class TileManager {
             const closingShape =
                 this.hoverPoint.x === this.progressPoints[0].x &&
                 this.hoverPoint.y === this.progressPoints[0].y;
-            this.model.setProgressTile(
+            this.canCommit = this.model.setProgressTile(
                 closingShape
                     ? this.progressPoints
                     : [...this.progressPoints, this.hoverPoint],
                 this.shapeType,
                 this.repeats,
             );
-            if (this.shapeType !== 'free' || closingShape || complete) {
+            if (this.shapeType !== 'free' || closingShape || completeShape) {
+                if (!this.canCommit) return;
                 this.model.commitProgressTile();
                 this.progressPoints = [];
                 this.#broadcast({
@@ -180,9 +183,17 @@ export class TileManager {
             this.progressPoints.length > 0,
         );
 
-        // Set the progress tile, only if we have two or more points
+        // Set commit flag if we have a line
+        if (this.progressPoints.length == 1) {
+            this.canCommit = this.model.canCommitLine([
+                this.progressPoints[0],
+                this.hoverPoint,
+            ]);
+        }
+
+        // Set the progress tile and commit flag, only if we have two or more points
         if (this.progressPoints.length >= 2) {
-            this.model.setProgressTile(
+            this.canCommit = this.model.setProgressTile(
                 [...this.progressPoints, this.hoverPoint],
                 this.shapeType,
                 this.repeats,
@@ -195,6 +206,7 @@ export class TileManager {
         this.model.progressTile = null;
         this.selectedTileIndex = null;
         this.hoverPoint = null;
+        this.canCommit = true;
     }
 
     // State handling
@@ -354,7 +366,9 @@ export class TileManager {
                     context.stroke();
                 }
                 // Draw progress points
-                context.fillStyle = ANCHOR_COLOR;
+                context.fillStyle = this.canCommit
+                    ? ANCHOR_COLOR
+                    : ANCHOR_COLOR_DISABLED;
                 this.progressPoints.forEach((point) => {
                     context.beginPath();
                     context.arc(
@@ -367,7 +381,9 @@ export class TileManager {
                     context.fill();
                 });
                 // Draw hover point
-                context.fillStyle = ANCHOR_COLOR_ACTIVE;
+                context.fillStyle = this.canCommit
+                    ? ANCHOR_COLOR_ACTIVE
+                    : ANCHOR_COLOR_DISABLED;
                 context.beginPath();
                 context.arc(
                     this.hoverPoint.x,
