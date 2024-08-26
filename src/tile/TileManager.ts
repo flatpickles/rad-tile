@@ -92,7 +92,7 @@ export class TileManager {
         this.zoom = Math.min(this.zoom, ZOOM_MAX);
     }
 
-    inputSelect(x: number, y: number, completeShape = false) {
+    inputSelect(x: number, y: number) {
         if (this.mode === 'paint') return;
 
         // Translate the input coordinates to the canvas coordinates, incorporating the zoom level
@@ -150,25 +150,23 @@ export class TileManager {
                 this.shapeType,
                 this.repeats,
             );
-            if (this.shapeType !== 'free' || closingShape || completeShape) {
-                if (!this.canCommit) return;
-                this.model.commitProgressTile();
-                this.progressPoints = [];
-                this.#broadcast({
-                    type: 'add',
-                    newMinRepeats: this.model.minRepeats,
-                });
+            if (this.shapeType !== 'free' || closingShape) {
+                this.completeProgressTile();
             } else {
                 this.progressPoints.push(this.hoverPoint);
             }
         }
     }
 
-    inputContextSelect(x: number, y: number): boolean {
-        // Finish shape if we have two or more points
-        if (this.mode === 'build' && this.progressPoints.length >= 2) {
-            this.inputSelect(x, y, true);
-            return true;
+    inputContextSelect(): boolean {
+        // Finish shape if we have enough points
+        if (this.mode === 'build' && this.progressPoints.length > 2) {
+            this.canCommit = this.model.setProgressTile(
+                this.progressPoints,
+                this.shapeType,
+                this.repeats,
+            );
+            return this.completeProgressTile();
         }
         // Otherwise, use default context menu behavior
         return false;
@@ -210,6 +208,17 @@ export class TileManager {
         this.selectedTileIndex = null;
         this.hoverPoint = null;
         this.canCommit = true;
+    }
+
+    completeProgressTile(): boolean {
+        if (!this.canCommit) return false;
+        this.model.commitProgressTile();
+        this.progressPoints = [];
+        this.#broadcast({
+            type: 'add',
+            newMinRepeats: this.model.minRepeats,
+        });
+        return true;
     }
 
     // State handling

@@ -4,17 +4,15 @@ This is a lightweight tool for easily making radial tile patterns, like the [San
 
 ## short todo:
 
--   free shape drawing: right click to exit (not add point)
 -   deleting: hover, unselect shape when mousing out // after timeout
 -   snap to angles (adjustable, based on repeat count & relative center position)
 -   paint mode: select palette and apply colors (new shapes random color from palette)
 -   confirm no duplicate points (from anchor set)
 -   break down TileManager
--   info screen
+-   info screen (describing what Rad Tile is)
 -   smooth mouse wheel scrolling
 -   cursor updates over canvas
--   handle possible errors from polygon-clipping
--   do we really need polygon-clipping?
+-   persistence for config + tiles (local storage)
 
 ## long todo:
 
@@ -34,8 +32,13 @@ This is a lightweight tool for easily making radial tile patterns, like the [San
     -   cancel input? (e.g. non-committable free shape)
 -   allow overlaps, but cut out overlapped shapes when applying
 -   no overlap mode: snap to edges + remove fully utilized anchors
--   persistence for config + tiles (local storage)
 -   ux: better completion instructions for free polygon
 -   undo / redo
 -   image + svg export
 -   perhaps punch up typography, theme colors, dark mode, assorted styling
+
+## tips:
+
+Tips in the UI could include:
+
+-   Right-click to finalize free shape input.
