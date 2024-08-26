@@ -4,6 +4,7 @@ import {
     isLineIntersectingShape,
     isPointInShape,
     Point,
+    polygonArea,
     rotatePoint,
     rotatePoints,
 } from '../util/Geometry';
@@ -114,6 +115,8 @@ export class TileModel {
     }
 
     canCommitTile(tile: Tile): boolean {
+        const EPSILON = 1e-10; // Small value to account for floating-point precision
+
         // todo: make more efficient (memoize rotations, avoid excessive maps etc)
         const newShape: PolygonClipping.Geom = [
             [tile.corners.map((c) => [c.x, c.y])],
@@ -137,7 +140,12 @@ export class TileModel {
                 testShape,
             );
             if (intersection.length > 0) {
-                return false;
+                const area = intersection.reduce((sum, poly) => {
+                    return sum + Math.abs(polygonArea(poly[0]));
+                }, 0);
+                if (area > EPSILON) {
+                    return false;
+                }
             }
         }
         return true;

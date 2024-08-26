@@ -16,6 +16,16 @@ export function rotatePoints(points: Point[], angle: number): Point[] {
 
 // Generated code from here on down...
 
+export function polygonArea(polygon: number[][]): number {
+    let area = 0;
+    for (let i = 0; i < polygon.length; i++) {
+        const j = (i + 1) % polygon.length;
+        area += polygon[i][0] * polygon[j][1];
+        area -= polygon[j][0] * polygon[i][1];
+    }
+    return area / 2;
+}
+
 export function isPointInShape(point: Point, shape: Point[]): boolean {
     let wn = 0; // Winding number
 
