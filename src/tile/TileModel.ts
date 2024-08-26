@@ -1,4 +1,4 @@
-import PolygonClipping from 'polygon-clipping';
+import * as polyclip from 'polyclip-ts';
 
 import {
     isLineIntersectingShape,
@@ -115,37 +115,76 @@ export class TileModel {
     }
 
     canCommitTile(tile: Tile): boolean {
-        const EPSILON = 1e-10; // Small value to account for floating-point precision
-
         // todo: make more efficient (memoize rotations, avoid excessive maps etc)
-        const newShape: PolygonClipping.Geom = [
-            [tile.corners.map((c) => [c.x, c.y])],
+        // todo: factor stuff out, including a centralized epsilon value / decimal precision
+
+        // polyclip is sensitive to floating point precision, so let's do some rounding
+        const DECIMAL_PLACES = 10;
+        const EPSILON = 1 / 10 ** DECIMAL_PLACES; // Small value to account for floating-point precision
+
+        // We'll translate everything into GeoJSON format
+        const newShape: polyclip.Geom = [
+            [
+                tile.corners.map((c) => [
+                    Number(c.x.toFixed(DECIMAL_PLACES)),
+                    Number(c.y.toFixed(DECIMAL_PLACES)),
+                ]),
+            ],
         ];
         // Start with the rotations of the new tile
-        const testShapes: PolygonClipping.Geom[] = tileRotationPoints(tile).map(
-            (rotatedTile) => [[rotatedTile.map((c) => [c.x, c.y])]],
+        const testShapes: polyclip.Geom[] = tileRotationPoints(tile).map(
+            (rotatedTile) => [
+                [
+                    rotatedTile.map((c) => [
+                        Number(c.x.toFixed(DECIMAL_PLACES)),
+                        Number(c.y.toFixed(DECIMAL_PLACES)),
+                    ]),
+                ],
+            ],
         );
         // Add all tiles and their rotations
         this.tiles.forEach((tile) => {
-            testShapes.push([[tile.corners.map((c) => [c.x, c.y])]]);
+            testShapes.push([
+                [
+                    tile.corners.map((c) => [
+                        Number(c.x.toFixed(DECIMAL_PLACES)),
+                        Number(c.y.toFixed(DECIMAL_PLACES)),
+                    ]),
+                ],
+            ]);
             const rotatedTiles = tileRotationPoints(tile);
             rotatedTiles.forEach((rotatedTile) => {
-                testShapes.push([[rotatedTile.map((c) => [c.x, c.y])]]);
+                testShapes.push([
+                    [
+                        rotatedTile.map((c) => [
+                            Number(c.x.toFixed(DECIMAL_PLACES)),
+                            Number(c.y.toFixed(DECIMAL_PLACES)),
+                        ]),
+                    ],
+                ]);
             });
         });
         // Check for intersections
         for (const testShape of testShapes) {
-            const intersection = PolygonClipping.intersection(
-                newShape,
-                testShape,
-            );
-            if (intersection.length > 0) {
-                const area = intersection.reduce((sum, poly) => {
-                    return sum + Math.abs(polygonArea(poly[0]));
-                }, 0);
-                if (area > EPSILON) {
-                    return false;
+            try {
+                const intersection = polyclip.intersection(newShape, testShape);
+                if (intersection.length > 0) {
+                    const area = intersection.reduce(
+                        (sum: number, poly: polyclip.Geom) => {
+                            return (
+                                sum +
+                                Math.abs(polygonArea(poly[0] as number[][]))
+                            );
+                        },
+                        0,
+                    );
+                    if (area > EPSILON) {
+                        return false;
+                    }
                 }
+            } catch (e) {
+                console.error(e);
+                return false;
             }
         }
         return true;
