@@ -11,14 +11,15 @@ const ZOOM_MIN = 0.1;
 const ZOOM_MAX = 10;
 
 // Scale constants
-const HANDLE_SIZE = 10;
+const HANDLE_SIZE = 14;
 const STROKE_WIDTH = 7;
+const HANDLE_STROKE_WIDTH = 5;
 const SNAP_DISTANCE = 40;
 
 // Color constants
+const COLOR_DISABLED = 'rgba(128, 128, 128, 1.0)';
 const ANCHOR_COLOR = 'rgba(0, 128, 0, 1.0)';
 const ANCHOR_COLOR_ACTIVE = 'rgba(0, 216, 0, 1.0)';
-const ANCHOR_COLOR_DISABLED = 'rgba(256, 0, 0, 1.0)';
 const ACTIVE_COLOR_TILE = 'rgba(128, 0, 128, 1.0)';
 const ACTIVE_COLOR_DELETE = 'rgba(216, 0, 0, 1.0)';
 const ACTIVE_COLOR_PROGRESS = 'rgba(0, 0, 128, 1.0)';
@@ -35,6 +36,8 @@ export type TileManagerEvent = {
     type: TileManagerEventType;
     newMinRepeats: number;
 };
+
+type HandleType = 'anchor' | 'hover' | 'disabled';
 
 export class TileManager {
     private model: TileModel = new TileModel();
@@ -256,6 +259,25 @@ export class TileManager {
 
     // Rendering
 
+    renderHandle(
+        context: CanvasRenderingContext2D,
+        point: AnchorPoint,
+        type: HandleType,
+    ) {
+        const scaledHandleSize = HANDLE_SIZE / this.zoom; // constant across zoom levels
+        context.fillStyle =
+            type === 'anchor'
+                ? ANCHOR_COLOR
+                : type === 'hover'
+                  ? ANCHOR_COLOR_ACTIVE
+                  : COLOR_DISABLED;
+        context.beginPath();
+        context.arc(point.x, point.y, scaledHandleSize, 0, 2 * Math.PI);
+        context.fill();
+        context.lineWidth = HANDLE_STROKE_WIDTH / this.zoom;
+        context.stroke();
+    }
+
     render() {
         // Get the context
         const context = this.canvas.getContext('2d');
@@ -334,7 +356,9 @@ export class TileManager {
 
         // Progress tile (in active area)
         if (this.model.progressTile) {
-            context.fillStyle = ACTIVE_COLOR_PROGRESS;
+            context.fillStyle = this.canCommit
+                ? ACTIVE_COLOR_PROGRESS
+                : COLOR_DISABLED;
             context.beginPath();
             context.moveTo(
                 this.model.progressTile.corners[0].x,
@@ -353,7 +377,6 @@ export class TileManager {
 
         if (this.mode === 'build') {
             // Draw the progress OR the available anchors
-            const scaledHandleSize = HANDLE_SIZE / this.zoom; // constant across zoom levels
             if (this.progressPoints.length > 0 && this.hoverPoint) {
                 // Draw path to hover point if there is no progress tile
                 if (!this.model.progressTile) {
@@ -366,53 +389,30 @@ export class TileManager {
                     context.stroke();
                 }
                 // Draw progress points
-                context.fillStyle = this.canCommit
-                    ? ANCHOR_COLOR
-                    : ANCHOR_COLOR_DISABLED;
                 this.progressPoints.forEach((point) => {
-                    context.beginPath();
-                    context.arc(
-                        point.x,
-                        point.y,
-                        scaledHandleSize,
-                        0,
-                        2 * Math.PI,
+                    this.renderHandle(
+                        context,
+                        point,
+                        this.canCommit ? 'anchor' : 'disabled',
                     );
-                    context.fill();
                 });
                 // Draw hover point
-                context.fillStyle = this.canCommit
-                    ? ANCHOR_COLOR_ACTIVE
-                    : ANCHOR_COLOR_DISABLED;
-                context.beginPath();
-                context.arc(
-                    this.hoverPoint.x,
-                    this.hoverPoint.y,
-                    scaledHandleSize,
-                    0,
-                    2 * Math.PI,
+                this.renderHandle(
+                    context,
+                    this.hoverPoint,
+                    this.canCommit ? 'hover' : 'disabled',
                 );
-                context.fill();
             } else {
                 // Draw anchors
                 this.model.anchors.forEach((anchor) => {
-                    if (
+                    const hovered =
                         anchor.x === this.hoverPoint?.x &&
-                        anchor.y === this.hoverPoint?.y
-                    ) {
-                        context.fillStyle = ANCHOR_COLOR_ACTIVE;
-                    } else {
-                        context.fillStyle = ANCHOR_COLOR;
-                    }
-                    context.beginPath();
-                    context.arc(
-                        anchor.x,
-                        anchor.y,
-                        scaledHandleSize,
-                        0,
-                        2 * Math.PI,
+                        anchor.y === this.hoverPoint?.y;
+                    this.renderHandle(
+                        context,
+                        anchor,
+                        hovered ? 'hover' : 'anchor',
                     );
-                    context.fill();
                 });
             }
         }
