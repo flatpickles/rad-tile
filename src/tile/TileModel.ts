@@ -1,5 +1,6 @@
 import * as polyclip from 'polyclip-ts';
 
+import Color from 'color';
 import {
     isLineIntersectingShape,
     isPointInShape,
@@ -26,6 +27,7 @@ export function newAnchor(point: Point, repeats = 1, shapes = 1): AnchorPoint {
 export type Tile = {
     corners: AnchorPoint[];
     repeats: number;
+    color: string;
 };
 
 export function tileRotationPoints(tile: Tile): Point[][] {
@@ -38,6 +40,10 @@ export function tileRotationPoints(tile: Tile): Point[][] {
     return rotatedTilePoints;
 }
 
+function randomColor() {
+    return Color.hsl(Math.random() * 360, 100, 50).toString();
+}
+
 export class TileModel {
     anchors: Set<AnchorPoint> = new Set([
         { x: 0, y: 0, repeats: 1, shapes: 0 },
@@ -45,6 +51,7 @@ export class TileModel {
     tiles: Tile[] = [];
     progressTile: Tile | null = null;
     minRepeats: number = Infinity;
+    currentColor: string = randomColor();
 
     getNearestAnchor(
         x: number,
@@ -265,6 +272,7 @@ export class TileModel {
         this.progressTile = {
             corners: cornersToUse,
             repeats,
+            color: this.currentColor,
         };
         return this.canCommitTile(this.progressTile);
     }
@@ -285,6 +293,7 @@ export class TileModel {
         this.tiles.push(this.progressTile);
         this.minRepeats = Math.min(this.minRepeats, this.progressTile.repeats);
         this.progressTile = null;
+        this.currentColor = randomColor();
     }
 
     clear() {

@@ -5,8 +5,8 @@ This is a lightweight tool for easily making radial tile patterns, like the [San
 ## short todo:
 
 -   deleting: hover, unselect shape when mousing out // after timeout
--   snap to angles (adjustable, based on repeat count & relative center position)
 -   paint mode: select palette and apply colors (new shapes random color from palette)
+-   snap to angles (adjustable, based on repeat count & relative center position)
 -   confirm no duplicate points (from anchor set)
 -   break down TileManager
 -   info screen (describing what Rad Tile is)
