@@ -11,6 +11,9 @@ const ContentsPaint: React.FC<ContentsPaintProps> = ({ manager }) => {
     const [strokeColor, setStrokeColor] = useState<string>(
         manager.style.strokeColor,
     );
+    const [backgroundColor, setBackgroundColor] = useState<string>(
+        manager.style.backgroundColor,
+    );
     const [strokeWidth, setStrokeWidth] = useState(manager.style.strokeWidth);
 
     useEffect(() => {
@@ -20,6 +23,11 @@ const ContentsPaint: React.FC<ContentsPaintProps> = ({ manager }) => {
     const handleColorChange = (color: string) => {
         setStrokeColor(color);
         manager.style.strokeColor = color;
+    };
+
+    const handleBackgroundColorChange = (color: string) => {
+        setBackgroundColor(color);
+        manager.style.backgroundColor = color;
     };
 
     return (
@@ -36,6 +44,11 @@ const ContentsPaint: React.FC<ContentsPaintProps> = ({ manager }) => {
                 color={strokeColor}
                 setColor={handleColorChange}
                 label="Stroke Color"
+            />
+            <ColorPicker
+                color={backgroundColor}
+                setColor={handleBackgroundColorChange}
+                label="Background Color"
             />
         </div>
     );
