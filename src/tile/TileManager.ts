@@ -292,6 +292,8 @@ export class TileManager {
         type: TileType,
         rotationsOnly = false,
     ) {
+        const shouldStroke =
+            this.mode === 'build' || this.style.strokeWidth > 0;
         context.lineWidth =
             this.mode === 'build'
                 ? STROKE_WIDTH / this.zoom
@@ -311,7 +313,7 @@ export class TileManager {
             }
             context.closePath();
             context.fill();
-            context.stroke();
+            if (shouldStroke) context.stroke();
         } else {
             // Draw tile rotations
             context.fillStyle =
@@ -333,7 +335,7 @@ export class TileManager {
                 }
                 context.closePath();
                 context.fill();
-                context.stroke();
+                if (shouldStroke) context.stroke();
             });
         }
     }

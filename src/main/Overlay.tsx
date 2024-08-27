@@ -2,9 +2,11 @@ import React, { useState } from 'react';
 import ClearButton from '../components/ClearButton';
 import ModeSelector from '../components/ModeSelector';
 import OverlayHeader from '../components/OverlayHeader';
-import { TileManager, TileManagerMode } from '../tile/TileManager';
+import { ShapeType, TileManager, TileManagerMode } from '../tile/TileManager';
 import ContentsBuild from './ContentsBuild';
 import ContentsPaint from './ContentsPaint';
+
+const DEFAULT_REPEATS = 8;
 
 interface OverlayProps {
     manager: TileManager;
@@ -12,17 +14,23 @@ interface OverlayProps {
 
 const Overlay: React.FC<OverlayProps> = ({ manager }) => {
     const [activeMode, setActiveMode] = useState<TileManagerMode>('build');
-    const [resetKey, setResetKey] = useState<number>(0);
+    const [repeats, setRepeats] = useState(DEFAULT_REPEATS);
+    const [baseRepeats, setBaseRepeats] = useState<number | null>(null);
+    const [activeShape, setActiveShape] = useState<ShapeType>('quad');
 
     const handleModeChange = (mode: TileManagerMode) => {
         setActiveMode(mode);
         manager?.setMode(mode);
     };
 
-    const handleClear = () => {
-        manager?.clear();
+    const handleReset = () => {
+        setRepeats(DEFAULT_REPEATS);
+        setBaseRepeats(null);
+        setActiveShape('quad');
+        manager.setRepeats(DEFAULT_REPEATS);
+        manager.setShape('quad');
+        manager.clear();
         handleModeChange('build');
-        setResetKey(resetKey + 1);
     };
 
     return (
@@ -33,10 +41,18 @@ const Overlay: React.FC<OverlayProps> = ({ manager }) => {
                     activeMode={activeMode}
                     handleModeChange={handleModeChange}
                 />
-                <ClearButton handleClear={handleClear} />
+                <ClearButton handleClear={handleReset} />
             </div>
             {activeMode === 'build' && (
-                <ContentsBuild manager={manager} key={resetKey} />
+                <ContentsBuild
+                    manager={manager}
+                    repeats={repeats}
+                    setRepeats={setRepeats}
+                    baseRepeats={baseRepeats}
+                    setBaseRepeats={setBaseRepeats}
+                    activeShape={activeShape}
+                    setActiveShape={setActiveShape}
+                />
             )}
             {activeMode === 'paint' && <ContentsPaint manager={manager} />}
         </div>
