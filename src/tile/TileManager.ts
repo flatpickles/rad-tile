@@ -23,7 +23,8 @@ const SNAP_DISTANCE = 40;
 const COLOR_DISABLED = 'rgba(128, 128, 128, 1.0)';
 const ANCHOR_COLOR = 'rgba(0, 200, 0, 1.0)';
 const ANCHOR_COLOR_ACTIVE = 'rgba(0, 256, 0, 1.0)';
-const ACTIVE_STROKE_COLOR = '#000000';
+const ACTIVE_STROKE_COLOR_DARK = '#000000';
+const ACTIVE_STROKE_COLOR_LIGHT = '#EEEEEE';
 const REPEAT_ATTENUATION = 0.4;
 
 export type TileManagerMode = 'build' | 'paint';
@@ -298,13 +299,16 @@ export class TileManager {
             this.mode === 'build'
                 ? STROKE_WIDTH / this.zoom
                 : this.style.strokeWidth;
+        const activeStrokeColor = Color(this.style.backgroundColor).isDark()
+            ? ACTIVE_STROKE_COLOR_LIGHT
+            : ACTIVE_STROKE_COLOR_DARK;
         if (!rotationsOnly) {
             // Draw tiles in progress area
             context.fillStyle =
                 type === 'disabled' ? COLOR_DISABLED : tile.color;
             context.strokeStyle =
                 this.mode === 'build'
-                    ? ACTIVE_STROKE_COLOR
+                    ? activeStrokeColor
                     : this.style.strokeColor;
             context.beginPath();
             context.moveTo(tile.corners[0].x, tile.corners[0].y);
