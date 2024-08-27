@@ -4,13 +4,11 @@ import { TileManager } from '../tile/TileManager';
 const dpr = window.devicePixelRatio || 1;
 
 interface CanvasProps {
-    setManager: (manager: TileManager) => void;
+    manager: TileManager;
 }
 
-const Canvas: React.FC<CanvasProps> = ({ setManager }) => {
+const Canvas: React.FC<CanvasProps> = ({ manager }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const tileManagerRef = useRef<TileManager | null>(null);
-    const rafIdRef = useRef<number | null>(null);
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -25,11 +23,8 @@ const Canvas: React.FC<CanvasProps> = ({ setManager }) => {
             ctx.imageSmoothingQuality = 'high';
         }
 
-        // Initialize TileManager only once
-        if (!tileManagerRef.current) {
-            tileManagerRef.current = new TileManager(canvas);
-            setManager(tileManagerRef.current);
-        }
+        // Set manager canvas
+        manager.canvas = canvas;
 
         // Resize the canvas to the window size as needed
         const handleResize = () => {
@@ -45,66 +40,44 @@ const Canvas: React.FC<CanvasProps> = ({ setManager }) => {
         // Add wheel event listener for zooming on the canvas only
         const handleWheel = (event: WheelEvent) => {
             event.preventDefault();
-            if (tileManagerRef.current) {
-                tileManagerRef.current.applyZoom(event.deltaY);
-            }
+            manager.applyZoom(event.deltaY);
         };
         canvas.addEventListener('wheel', handleWheel, { passive: false });
 
         // Add keydown event listener for escape
         const handleKeyDown = (event: KeyboardEvent) => {
             if (event.key === 'Escape') {
-                if (tileManagerRef.current) {
-                    tileManagerRef.current.cancelInput();
-                }
+                manager.cancelInput();
             }
         };
         window.addEventListener('keydown', handleKeyDown);
-
-        // Set up the render loop
-        const render = () => {
-            if (tileManagerRef.current) {
-                tileManagerRef.current.render();
-            }
-            rafIdRef.current = requestAnimationFrame(render);
-        };
-        render();
 
         // Clean up
         return () => {
             window.removeEventListener('resize', handleResize);
             canvas.removeEventListener('wheel', handleWheel);
             window.removeEventListener('keydown', handleKeyDown);
-            if (rafIdRef.current) {
-                cancelAnimationFrame(rafIdRef.current);
-            }
         };
     });
 
     const handleClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
-        if (tileManagerRef.current) {
-            tileManagerRef.current.inputSelect(
-                event.nativeEvent.offsetX * dpr,
-                event.nativeEvent.offsetY * dpr,
-            );
-        }
+        manager.inputSelect(
+            event.nativeEvent.offsetX * dpr,
+            event.nativeEvent.offsetY * dpr,
+        );
     };
 
     const handleMouseMove = (event: React.MouseEvent<HTMLCanvasElement>) => {
-        if (tileManagerRef.current) {
-            tileManagerRef.current.inputMove(
-                event.nativeEvent.offsetX * dpr,
-                event.nativeEvent.offsetY * dpr,
-            );
-        }
+        manager.inputMove(
+            event.nativeEvent.offsetX * dpr,
+            event.nativeEvent.offsetY * dpr,
+        );
     };
 
     const handleContextMenu = (event: React.MouseEvent<HTMLCanvasElement>) => {
-        if (tileManagerRef.current) {
-            // Prevent default if the input is used
-            if (tileManagerRef.current.inputContextSelect()) {
-                event.preventDefault();
-            }
+        // Prevent default if the input is used
+        if (manager.inputContextSelect()) {
+            event.preventDefault();
         }
     };
 

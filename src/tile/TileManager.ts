@@ -40,8 +40,9 @@ type HandleType = 'anchor' | 'hover' | 'disabled';
 type TileType = 'progress' | 'hover' | 'default' | 'disabled';
 
 export class TileManager {
+    canvas: HTMLCanvasElement | null = null;
+
     private model: TileModel = new TileModel();
-    private canvas: HTMLCanvasElement;
     private zoom: number = 1;
     private progressPoints: AnchorPoint[] = [];
     private hoverPoint: AnchorPoint | null = null;
@@ -52,10 +53,6 @@ export class TileManager {
     private mode: TileManagerMode = 'build';
     private repeats: number = 8;
     private shapeType: ShapeType = 'quad';
-
-    constructor(canvas: HTMLCanvasElement) {
-        this.canvas = canvas;
-    }
 
     // Event listeners
 
@@ -94,6 +91,7 @@ export class TileManager {
 
     inputSelect(x: number, y: number) {
         if (this.mode === 'paint') return;
+        if (!this.canvas) return;
 
         // Translate the input coordinates to the canvas coordinates, incorporating the zoom level
         const canvasX = (x - this.canvas.width / 2) / this.zoom;
@@ -174,6 +172,7 @@ export class TileManager {
 
     inputMove(x: number, y: number) {
         if (this.mode === 'paint') return;
+        if (!this.canvas) return;
 
         // Translate the input coordinates to the canvas coordinates, incorporating the zoom level
         const canvasX = (x - this.canvas.width / 2) / this.zoom;
@@ -334,6 +333,7 @@ export class TileManager {
 
     render() {
         // Get the context
+        if (!this.canvas) return;
         const context = this.canvas.getContext('2d');
         if (!context) {
             throw new Error('No context');

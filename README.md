@@ -14,6 +14,12 @@ This is a lightweight tool for easily making radial tile patterns, like the [San
 -   cursor updates over canvas
 -   persistence for config + tiles (local storage)
 
+-   Paint:
+    -   inset
+    -   border width
+    -   border color
+    -   background color
+
 ## long todo:
 
 -   start with a shape in the center

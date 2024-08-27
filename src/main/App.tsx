@@ -1,15 +1,14 @@
-import React, { useState } from 'react';
-import { TileManager } from '../tile/TileManager';
+import React from 'react';
+import { useTileManager } from '../tile/TileManagerHook';
 import Canvas from './Canvas';
 import Overlay from './Overlay';
 
 const App: React.FC = () => {
-    // todo: lift manager ownership out of canvas component
-    const [manager, setManager] = useState<TileManager | null>(null);
+    const manager = useTileManager();
 
     return (
         <div className="relative h-screen w-screen select-none">
-            <Canvas setManager={setManager} />
+            <Canvas manager={manager} />
             <Overlay manager={manager} />
         </div>
     );
