@@ -6,6 +6,7 @@ import {
     TileModel,
     tileRotationPoints,
 } from './TileModel';
+import { TileStyle, TileStyleDefaults } from './TileStyle';
 
 // Zoom constants
 const ZOOM_FACTOR = 0.01;
@@ -18,13 +19,11 @@ const STROKE_WIDTH = 7;
 const HANDLE_STROKE_WIDTH = 5;
 const SNAP_DISTANCE = 40;
 
-// Color constants
-const BACKGROUND_COLOR = '#f0f0f0';
+// Color constants for build mode
 const COLOR_DISABLED = 'rgba(128, 128, 128, 1.0)';
-const ANCHOR_COLOR = 'rgba(0, 128, 0, 1.0)';
-const ANCHOR_COLOR_ACTIVE = 'rgba(0, 216, 0, 1.0)';
+const ANCHOR_COLOR = 'rgba(0, 200, 0, 1.0)';
+const ANCHOR_COLOR_ACTIVE = 'rgba(0, 256, 0, 1.0)';
 const ACTIVE_STROKE_COLOR = '#000000';
-const DEFAULT_STROKE_COLOR = BACKGROUND_COLOR;
 const REPEAT_ATTENUATION = 0.4;
 
 export type TileManagerMode = 'build' | 'paint';
@@ -41,6 +40,7 @@ type TileType = 'progress' | 'hover' | 'default' | 'disabled';
 
 export class TileManager {
     canvas: HTMLCanvasElement | null = null;
+    style: TileStyle = TileStyleDefaults;
 
     private model: TileModel = new TileModel();
     private zoom: number = 1;
@@ -292,6 +292,10 @@ export class TileManager {
         type: TileType,
         rotationsOnly = false,
     ) {
+        context.lineWidth =
+            this.mode === 'build'
+                ? STROKE_WIDTH / this.zoom
+                : this.style.strokeWidth;
         if (!rotationsOnly) {
             // Draw tiles in progress area
             context.fillStyle =
@@ -299,7 +303,7 @@ export class TileManager {
             context.strokeStyle =
                 this.mode === 'build'
                     ? ACTIVE_STROKE_COLOR
-                    : DEFAULT_STROKE_COLOR;
+                    : this.style.strokeColor;
             context.beginPath();
             context.moveTo(tile.corners[0].x, tile.corners[0].y);
             for (let i = 1; i < tile.corners.length; i++) {
@@ -317,7 +321,10 @@ export class TileManager {
                           .lighten(REPEAT_ATTENUATION)
                           .toString()
                     : tile.color;
-            context.strokeStyle = DEFAULT_STROKE_COLOR;
+            context.strokeStyle =
+                this.mode === 'build'
+                    ? this.style.backgroundColor
+                    : this.style.strokeColor;
             tileRotationPoints(tile).forEach((rotatedPoints) => {
                 context.beginPath();
                 context.moveTo(rotatedPoints[0].x, rotatedPoints[0].y);
@@ -340,7 +347,7 @@ export class TileManager {
         }
 
         // Clear, setup, and translate the canvas
-        context.fillStyle = BACKGROUND_COLOR;
+        context.fillStyle = this.style.backgroundColor;
         context.fillRect(0, 0, this.canvas.width, this.canvas.height);
         context.save();
         context.translate(this.canvas.width / 2, this.canvas.height / 2);
@@ -382,6 +389,7 @@ export class TileManager {
                         this.progressPoints[0].y,
                     );
                     context.lineTo(this.hoverPoint.x, this.hoverPoint.y);
+                    context.lineWidth = STROKE_WIDTH / this.zoom;
                     context.stroke();
                 }
                 // Draw progress points
