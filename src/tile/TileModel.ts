@@ -33,7 +33,8 @@ export type Tile = {
 export function tileRotationPoints(tile: Tile): Point[][] {
     const rotatedTilePoints: Point[][] = [];
     const alphaStep = (2 * Math.PI) / tile.repeats;
-    for (let alpha = alphaStep; alpha < 2 * Math.PI; alpha += alphaStep) {
+    for (let step = 1; step < tile.repeats; step++) {
+        const alpha = step * alphaStep;
         const rotatedTile = rotatePoints(tile.corners, alpha);
         rotatedTilePoints.push(rotatedTile);
     }
