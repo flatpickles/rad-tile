@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react';
-import { TileManager } from '../tile/TileManager';
+import { TileManager } from './TileManager';
 
 export function useTileManager() {
     const managerRef = useRef<TileManager | null>(null);
