@@ -1,0 +1,10 @@
+.color-picker-wrapper {
+    @apply w-10 cursor-pointer join-item h-full overflow-hidden border;
+    border-color: var(--fallback-bc, oklch(var(--bc) / 0.2));
+    margin-left: 0;
+    border-left: none;
+}
+
+.color-picker {
+    scale: 3;
+}

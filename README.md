@@ -4,7 +4,7 @@ This is a lightweight tool for easily making radial tile patterns, like the [San
 
 ## short todo:
 
--   deleting: hover, unselect shape when mousing out // after timeout
+-   deleting: hover, show delete confirm, unselect shape when mousing out // after timeout
 -   paint mode: select palette and apply colors (new shapes random color from palette)
 -   snap to angles (adjustable, based on repeat count & relative center position)
 -   confirm no duplicate points (from anchor set)
@@ -16,7 +16,6 @@ This is a lightweight tool for easily making radial tile patterns, like the [San
 
 -   Paint:
     -   inset
-    -   border width
     -   border color
     -   background color
 

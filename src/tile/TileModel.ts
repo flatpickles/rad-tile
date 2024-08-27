@@ -126,8 +126,8 @@ export class TileModel {
         // todo: make more efficient (memoize rotations, avoid excessive maps etc)
         // todo: factor stuff out, including a centralized epsilon value / decimal precision
 
-        // polyclip is sensitive to floating point precision, so let's do some rounding
-        const DECIMAL_PLACES = 10;
+        // polyclip is sensitive to floating point precision, so let's do some rounding and hope
+        const DECIMAL_PLACES = 5;
         const EPSILON = 1 / 10 ** DECIMAL_PLACES; // Small value to account for floating-point precision
 
         // We'll translate everything into GeoJSON format
