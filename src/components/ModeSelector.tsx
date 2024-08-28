@@ -18,10 +18,10 @@ const ModeSelector: React.FC<ModeSelectorProps> = ({
                 Build
             </button>
             <button
-                className={`join-item btn btn-sm flex-grow ${activeMode === 'paint' ? 'btn-active' : ''}`}
-                onClick={() => handleModeChange('paint')}
+                className={`join-item btn btn-sm flex-grow ${activeMode === 'render' ? 'btn-active' : ''}`}
+                onClick={() => handleModeChange('render')}
             >
-                Paint
+                Render
             </button>
         </div>
     );

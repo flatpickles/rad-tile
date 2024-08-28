@@ -4,7 +4,7 @@ This is a lightweight tool for easily making radial tile patterns, like the [San
 
 ## short todo:
 
--   rename "Paint" -> "Render"
+-   "no mobile" display for narrow screens / touch devices
 -   show hover (build + render): lighten color
 -   show delete selection (build): hide other build strokes and corners, use red color in corner dots
 -   deselect on new shape addition and hover snap
@@ -12,34 +12,34 @@ This is a lightweight tool for easily making radial tile patterns, like the [San
 -   "randomize new color" param (build): boolean, either uses a random new color or the latest "apply color" for new shapes
 -   info overlay: click an (i) to learn about what rad tile is (intent, usage, attribution, etc)
 -   "tile inset" (render): dial in a pixel size reduction for tiles (polyclip "offset")
--   basic mobile UX:
-    -   canvas sizing for safari
-    -   tap/drag/release to start/preview/set new corners
-    -   button: cancel current tile addition
-    -   hide overlay (except info screen)
+-   "center shape" (build): start with a shape in the center
 -   improved mouse wheel scrolling (smoother/slower)
 -   styling touch up: typography, theme colors, dark mode, input UIs, cursor over canvas
 -   refactor (break down) TileManager
 
 ## medium todo:
 
+-   persistence for config + composition (local storage)
 -   svg & png export
--   start with a shape in the center (param)
 -   disable internal anchors for starting / snapping (track hull, or angular saturation for each anchor)
+-   deselect (build) on mouse out and timer expiration (like reset button)
+-   basic mobile UX:
+    -   canvas/page sizing for safari
+    -   tap/drag/release to start/preview/set new corners
+    -   button: cancel current tile addition
+    -   hide overlay (except info screen)
 -   snapping:
     -   existing tile edges emerging from last anchor point
     -   angles in space (adjustable, based on repeat count & relative center position)
     -   distances in space (from center, from initial tile corner, from last tile corner)
     -   visualize spatial snapping: polar grid(s)
--   deselect (build) on mouse out and timer expiration (like reset button)
--   persistence for config + composition (local storage)
+
+## long todo:
+
 -   advanced mobile UX:
     -   pinch to zoom
     -   mobile-friendly overlay
     -   button: complete free shape
-
-## long todo:
-
 -   paint palette: build a group of colors for tile color assignment
 -   pan + recenter canvas position
 -   equilateral mode (during add, for quad & tri)

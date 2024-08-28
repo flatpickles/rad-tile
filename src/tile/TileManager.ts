@@ -27,7 +27,7 @@ const ACTIVE_STROKE_COLOR_DARK = '#000000';
 const ACTIVE_STROKE_COLOR_LIGHT = '#EEEEEE';
 const REPEAT_ATTENUATION = 0.4;
 
-export type TileManagerMode = 'build' | 'paint';
+export type TileManagerMode = 'build' | 'render';
 export type ShapeType = 'quad' | 'tri' | 'free';
 
 export type TileManagerEventType = 'add' | 'remove';
@@ -91,7 +91,7 @@ export class TileManager {
     }
 
     inputSelect(x: number, y: number) {
-        if (this.mode === 'paint') return;
+        if (this.mode === 'render') return;
         if (!this.canvas) return;
 
         // Translate the input coordinates to the canvas coordinates, incorporating the zoom level
@@ -172,7 +172,7 @@ export class TileManager {
     }
 
     inputMove(x: number, y: number) {
-        if (this.mode === 'paint') return;
+        if (this.mode === 'render') return;
         if (!this.canvas) return;
 
         // Translate the input coordinates to the canvas coordinates, incorporating the zoom level

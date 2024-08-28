@@ -3,11 +3,11 @@ import ColorPicker from '../components/ColorPicker';
 import SimpleSlider from '../components/SimpleSlider';
 import { TileManager } from '../tile/TileManager';
 
-interface ContentsPaintProps {
+interface ContentsRenderProps {
     manager: TileManager;
 }
 
-const ContentsPaint: React.FC<ContentsPaintProps> = ({ manager }) => {
+const ContentsRender: React.FC<ContentsRenderProps> = ({ manager }) => {
     const [strokeColor, setStrokeColor] = useState<string>(
         manager.style.strokeColor,
     );
@@ -54,4 +54,4 @@ const ContentsPaint: React.FC<ContentsPaintProps> = ({ manager }) => {
     );
 };
 
-export default ContentsPaint;
+export default ContentsRender;

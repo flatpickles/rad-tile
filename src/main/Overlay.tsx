@@ -4,7 +4,7 @@ import ModeSelector from '../components/ModeSelector';
 import OverlayHeader from '../components/OverlayHeader';
 import { ShapeType, TileManager, TileManagerMode } from '../tile/TileManager';
 import ContentsBuild from './ContentsBuild';
-import ContentsPaint from './ContentsPaint';
+import ContentsRender from './ContentsRender';
 
 const DEFAULT_REPEATS = 8;
 
@@ -54,7 +54,7 @@ const Overlay: React.FC<OverlayProps> = ({ manager }) => {
                     setActiveShape={setActiveShape}
                 />
             )}
-            {activeMode === 'paint' && <ContentsPaint manager={manager} />}
+            {activeMode === 'render' && <ContentsRender manager={manager} />}
         </div>
     );
 };
