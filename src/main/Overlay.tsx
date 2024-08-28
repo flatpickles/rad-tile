@@ -34,7 +34,7 @@ const Overlay: React.FC<OverlayProps> = ({ manager }) => {
     };
 
     return (
-        <div className="absolute top-10 right-10 p-4 shadow-sm rounded-lg bg-base-100 border bg-opacity-90 backdrop-blur-lg w-72 flex flex-col gap-2">
+        <div className="absolute shadow-sm p-4 rounded-lg bg-base-100 border bg-opacity-90 backdrop-blur-lg flex flex-col gap-2 inset-4 top-auto max-h-96 sm:top-8 sm:left-auto sm:right-8 sm:bottom-auto sm:w-72 sm:max-h-[calc(100vh-4rem)] overflow-y-auto">
             <OverlayHeader />
             <div className="flex flex-row gap-2 w-full">
                 <ModeSelector
