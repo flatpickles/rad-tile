@@ -56,7 +56,7 @@ const Canvas: React.FC<CanvasProps> = ({ manager }) => {
             // Apply a non-linear scaling to make small changes more pronounced
             const scaledDelta =
                 Math.sign(normalizedDelta) *
-                Math.pow(Math.abs(normalizedDelta), 0.8);
+                Math.pow(Math.abs(normalizedDelta), 0.7);
             manager.applyZoom(scaledDelta);
         };
         canvas.addEventListener('wheel', handleWheel, { passive: false });

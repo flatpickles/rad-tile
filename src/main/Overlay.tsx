@@ -20,17 +20,15 @@ const Overlay: React.FC<OverlayProps> = ({ manager }) => {
 
     const handleModeChange = (mode: TileManagerMode) => {
         setActiveMode(mode);
-        manager?.setMode(mode);
+        manager.setMode(mode);
     };
 
     const handleReset = () => {
         setRepeats(DEFAULT_REPEATS);
         setBaseRepeats(null);
         setActiveShape('quad');
-        manager.setRepeats(DEFAULT_REPEATS);
-        manager.setShape('quad');
-        manager.clear();
         handleModeChange('build');
+        manager.reset();
     };
 
     return (

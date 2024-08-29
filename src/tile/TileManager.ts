@@ -251,10 +251,13 @@ export class TileManager {
         }
     }
 
-    clear() {
+    reset() {
         this.model.clear();
         this.zoom = 1;
         this.cancelInput();
+        // todo: centralize defaults
+        this.setRepeats(8);
+        this.setShape('quad');
     }
 
     setMode(mode: TileManagerMode) {
