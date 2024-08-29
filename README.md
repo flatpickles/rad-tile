@@ -5,9 +5,9 @@ This is a lightweight tool for easily making radial tile patterns, like the [San
 ## short todo:
 
 -   track tiles w/ id, not index
--   show hover (build + render): lighten color
+-   draw selected tiles on top
+-   better hover colors
 -   show delete selection (build): hide other build strokes and corners, use red color in corner dots
--   deselect on new shape addition and hover snap
 -   "apply color" param (render): pick a color and apply it to selected shapes
 -   "randomize new color" param (build): boolean, either uses a random new color or the latest "apply color" for new shapes
 -   info overlay: click an (i) to learn about what rad tile is (intent, usage, attribution, etc)
