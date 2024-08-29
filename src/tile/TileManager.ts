@@ -30,12 +30,11 @@ const SNAP_DISTANCE = 40;
 
 // Color constants for build mode
 const COLOR_DISABLED = 'rgba(128, 128, 128, 1.0)';
-const ANCHOR_COLOR = 'rgba(50, 200, 50, 1.0)';
-const ANCHOR_COLOR_ACTIVE = 'rgba(0, 256, 0, 1.0)';
+const ANCHOR_COLOR_LIGHT = 'rgba(0, 256, 0, 1.0)';
+const ANCHOR_COLOR_DARK = 'rgba(0, 170, 0, 1.0)';
 const ANCHOR_COLOR_DELETE = 'rgba(256, 0, 0, 1.0)';
-const ACTIVE_STROKE_COLOR_DARK = '#000000';
-const ACTIVE_STROKE_COLOR_LIGHT = '#EEEEEE';
-const COLOR_MOD = 0.4;
+const ACTIVE_STROKE_COLOR_DARK = '#222222';
+const ACTIVE_STROKE_COLOR_LIGHT = '#DDDDDD';
 
 type RenderConfig = {
     fillColor: string;
@@ -318,6 +317,7 @@ export class TileManager {
         context.beginPath();
         context.arc(point.x, point.y, scaledHandleSize, 0, 2 * Math.PI);
         context.fillStyle = renderConfig.fillColor;
+        context.strokeStyle = renderConfig.strokeColor;
         context.fill();
         context.lineWidth = renderConfig.lineWidth;
         context.stroke();
@@ -343,17 +343,19 @@ export class TileManager {
             point.tileIds.includes(this.hoveredTileId);
 
         // Get fill & stroke colors
+        const passiveAnchorColor = ANCHOR_COLOR_DARK;
+        const activeAnchorColor = ANCHOR_COLOR_LIGHT;
         let fillColor: string;
         if (hasSelectedTile && alongSelectedTile) {
             fillColor = ANCHOR_COLOR_DELETE;
         } else if (alongHoveredTile) {
-            fillColor = ANCHOR_COLOR_ACTIVE;
+            fillColor = activeAnchorColor;
         } else {
             fillColor = isDisabled
                 ? COLOR_DISABLED
                 : isHovered
-                  ? ANCHOR_COLOR_ACTIVE
-                  : ANCHOR_COLOR;
+                  ? activeAnchorColor
+                  : passiveAnchorColor;
         }
         const activeStrokeColor = Color(this.style.backgroundColor).isDark()
             ? ACTIVE_STROKE_COLOR_LIGHT
@@ -430,15 +432,15 @@ export class TileManager {
     }
 
     #highlightColor(baseColor: string): string {
-        const color = Color(baseColor);
-        return color.saturate(COLOR_MOD).lighten(COLOR_MOD).toString();
+        return (
+            Color(this.style.backgroundColor).isLight()
+                ? Color(baseColor).lighten(0.5).toString()
+                : Color(baseColor).darken(0.2).toString()
+        ).toString();
     }
 
     #lowlightColor(baseColor: string): string {
-        return Color(baseColor)
-            .desaturate(COLOR_MOD)
-            .lighten(COLOR_MOD)
-            .toString();
+        return Color(baseColor).alpha(0.5).toString();
     }
 
     #getTileStrokeColor(tile: Tile, rotationsOnly: boolean): string {
@@ -524,6 +526,12 @@ export class TileManager {
             // Draw the progress OR the available anchors
             if (this.progressPoints.length > 0 && this.hoverPoint) {
                 // Draw path to hover point if there is no progress tile
+                const activeStrokeColor = Color(
+                    this.style.backgroundColor,
+                ).isDark()
+                    ? ACTIVE_STROKE_COLOR_LIGHT
+                    : ACTIVE_STROKE_COLOR_DARK;
+                context.strokeStyle = activeStrokeColor;
                 if (!this.model.progressTile) {
                     context.beginPath();
                     context.moveTo(

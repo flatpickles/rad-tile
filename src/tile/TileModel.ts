@@ -43,7 +43,7 @@ export function tileRotationPoints(tile: Tile): Point[][] {
 }
 
 function randomColor() {
-    return Color.hsl(Math.random() * 360, 100, 50).toString();
+    return Color.hsl(Math.random() * 360, 100, 45).toString();
 }
 
 export class TileModel {

@@ -15,6 +15,6 @@ export const Defaults: {
         backgroundColor: '#f0f0f0',
         strokeColor: '#000000',
         strokeWidth: 7,
-        currentColor: '#FFA500',
+        currentColor: '#facade',
     },
 };
