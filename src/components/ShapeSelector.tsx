@@ -1,4 +1,4 @@
-import { ShapeType } from '../tile/TileManager';
+import { ShapeType } from '../tile/TileTypes';
 
 interface ModeSelectorProps {
     activeShape: ShapeType;
