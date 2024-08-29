@@ -48,8 +48,8 @@ export class TileManager {
     private zoom: number = 1;
     private progressPoints: AnchorPoint[] = [];
     private hoverPoint: AnchorPoint | null = null;
-    private hoveredTileIndex: number | null = null;
-    private selectedTileIndex: number | null = null;
+    private hoveredTileId: string | null = null;
+    private selectedTileId: string | null = null;
     private canCommit: boolean = true;
 
     // todo: centralize default values
@@ -101,7 +101,7 @@ export class TileManager {
         const canvasY = (y - this.canvas.height / 2) / this.zoom;
 
         // Selecting also sets the hover point
-        const [hoverPoint, hoverIsAnchor] = this.#pointOrNearestAnchor(
+        const [hoverPoint, hoverIsAnchor] = this.#snappedPoint(
             canvasX,
             canvasY,
             this.progressPoints.length > 0,
@@ -115,23 +115,23 @@ export class TileManager {
                 this.progressPoints.push(this.hoverPoint);
             } else {
                 // Select the nearest tile
-                const newSelectedTileIndex = this.model.getNearestTileIndex(
+                const newSelectedTileId = this.model.getNearestTileId(
                     this.hoverPoint.x,
                     this.hoverPoint.y,
                 );
                 // Change the selected tile, or remove it if it's already selected
                 if (
-                    newSelectedTileIndex !== null &&
-                    this.selectedTileIndex === newSelectedTileIndex
+                    newSelectedTileId !== null &&
+                    this.selectedTileId === newSelectedTileId
                 ) {
-                    this.model.removeTileAtIndex(this.selectedTileIndex);
-                    this.selectedTileIndex = null;
+                    this.model.removeTileWithId(this.selectedTileId);
+                    this.selectedTileId = null;
                     this.#broadcast({
                         type: 'remove',
                         newMinRepeats: this.model.minRepeats,
                     });
                 } else {
-                    this.selectedTileIndex = newSelectedTileIndex;
+                    this.selectedTileId = newSelectedTileId;
                 }
             }
         }
@@ -179,7 +179,7 @@ export class TileManager {
         // Translate the input coordinates to the canvas coordinates, incorporating the zoom level
         const canvasX = (x - this.canvas.width / 2) / this.zoom;
         const canvasY = (y - this.canvas.height / 2) / this.zoom;
-        const [hoverPoint, hoverIsAnchor] = this.#pointOrNearestAnchor(
+        const [hoverPoint, hoverIsAnchor] = this.#snappedPoint(
             canvasX,
             canvasY,
             this.progressPoints.length > 0,
@@ -189,19 +189,19 @@ export class TileManager {
         // If we're not creating a new shape, look for hovered tile (with rotations in render mode)
         if (this.progressPoints.length === 0 && !hoverIsAnchor) {
             // Set the hovered tile
-            this.hoveredTileIndex = this.model.getNearestTileIndex(
+            this.hoveredTileId = this.model.getNearestTileId(
                 hoverPoint.x,
                 hoverPoint.y,
                 this.mode === 'render',
             );
             // Deselect the selected tile if we're not still hovering over it
-            if (this.hoveredTileIndex !== this.selectedTileIndex) {
-                this.selectedTileIndex = null;
+            if (this.hoveredTileId !== this.selectedTileId) {
+                this.selectedTileId = null;
             }
         } else {
             // Reset hover & selection if we're creating a shape or hovering over an anchor
-            this.hoveredTileIndex = null;
-            this.selectedTileIndex = null;
+            this.hoveredTileId = null;
+            this.selectedTileId = null;
         }
 
         // Set commit flag if we have a line
@@ -225,7 +225,8 @@ export class TileManager {
     cancelInput() {
         this.progressPoints = [];
         this.model.progressTile = null;
-        this.selectedTileIndex = null;
+        this.selectedTileId = null;
+        this.hoveredTileId = null;
         this.hoverPoint = null;
         this.canCommit = true;
     }
@@ -266,15 +267,16 @@ export class TileManager {
         this.shapeType = shape;
     }
 
-    #pointOrNearestAnchor(
+    #snappedPoint(
         x: number,
         y: number,
         includeRepeats: boolean = false,
     ): [AnchorPoint, boolean] {
-        // todo: this is dirty, clean it up
+        // No snapping in render mode
         if (this.mode === 'render') {
             return [newAnchor({ x, y }, this.repeats), false];
         }
+        // Snapping in build mode
         const excludePoints =
             this.shapeType === 'free' && this.progressPoints.length >= 3
                 ? this.progressPoints.slice(1)
@@ -402,29 +404,23 @@ export class TileManager {
         context.lineCap = 'round';
 
         // Draw tile repeats first
-        this.model.tiles.forEach((tile, index) => {
-            this.renderTile(
-                context,
-                tile,
-                index === this.hoveredTileIndex ? 'hover' : 'default',
-                true,
-            );
+        this.model.tiles.forEach((tile) => {
+            const type = tile.id === this.hoveredTileId ? 'hover' : 'default';
+            this.renderTile(context, tile, type, true);
         });
         if (this.model.progressTile) {
             this.renderTile(context, this.model.progressTile, 'progress', true);
         }
 
         // Now draw the active area
-        this.model.tiles.forEach((tile, index) => {
-            this.renderTile(
-                context,
-                tile,
-                index === this.selectedTileIndex
+        this.model.tiles.forEach((tile) => {
+            const type =
+                tile.id === this.selectedTileId
                     ? 'selected'
-                    : index === this.hoveredTileIndex
+                    : tile.id === this.hoveredTileId
                       ? 'hover'
-                      : 'default',
-            );
+                      : 'default';
+            this.renderTile(context, tile, type);
         });
         if (this.model.progressTile) {
             this.renderTile(

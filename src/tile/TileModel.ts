@@ -28,6 +28,7 @@ export type Tile = {
     corners: AnchorPoint[];
     repeats: number;
     color: string;
+    id: string;
 };
 
 export function tileRotationPoints(tile: Tile): Point[][] {
@@ -53,6 +54,7 @@ export class TileModel {
     progressTile: Tile | null = null;
     minRepeats: number = Infinity;
     currentColor: string = randomColor();
+    currentId: string = crypto.randomUUID();
 
     getNearestAnchor(
         x: number,
@@ -211,25 +213,29 @@ export class TileModel {
         return true;
     }
 
-    getNearestTileIndex(
+    getNearestTileId(
         x: number,
         y: number,
         withPointRotations = false,
-    ): number | null {
+    ): string | null {
         for (let i = this.tiles.length - 1; i >= 0; i--) {
             const shapesToCheck = withPointRotations
                 ? [...tileRotationPoints(this.tiles[i]), this.tiles[i].corners]
                 : [this.tiles[i].corners];
             for (const shape of shapesToCheck) {
                 if (isPointInShape({ x, y }, shape)) {
-                    return i;
+                    return this.tiles[i].id;
                 }
             }
         }
         return null;
     }
 
-    removeTileAtIndex(index: number) {
+    removeTileWithId(id: string) {
+        const index = this.tiles.findIndex((tile) => tile.id === id);
+        if (index === -1) {
+            throw new Error(`Tile with id ${id} not found`);
+        }
         const [removedTile] = this.tiles.splice(index, 1);
         // Remove anchors that are no longer used (except for the origin)
         removedTile.corners.forEach((corner) => {
@@ -283,6 +289,7 @@ export class TileModel {
             corners: cornersToUse,
             repeats,
             color: this.currentColor,
+            id: this.currentId,
         };
         return this.canCommitTile(this.progressTile);
     }
@@ -304,6 +311,7 @@ export class TileModel {
         this.minRepeats = Math.min(this.minRepeats, this.progressTile.repeats);
         this.progressTile = null;
         this.currentColor = randomColor();
+        this.currentId = crypto.randomUUID();
     }
 
     clear() {
