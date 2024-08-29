@@ -4,6 +4,7 @@ This is a lightweight tool for easily making radial tile patterns, like the [San
 
 ## short todo:
 
+-   track tiles w/ id, not index
 -   show hover (build + render): lighten color
 -   show delete selection (build): hide other build strokes and corners, use red color in corner dots
 -   deselect on new shape addition and hover snap

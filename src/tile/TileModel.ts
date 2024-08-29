@@ -211,10 +211,19 @@ export class TileModel {
         return true;
     }
 
-    getNearestTileIndex(x: number, y: number): number | null {
+    getNearestTileIndex(
+        x: number,
+        y: number,
+        withPointRotations = false,
+    ): number | null {
         for (let i = this.tiles.length - 1; i >= 0; i--) {
-            if (isPointInShape({ x, y }, this.tiles[i].corners)) {
-                return i;
+            const shapesToCheck = withPointRotations
+                ? [...tileRotationPoints(this.tiles[i]), this.tiles[i].corners]
+                : [this.tiles[i].corners];
+            for (const shape of shapesToCheck) {
+                if (isPointInShape({ x, y }, shape)) {
+                    return i;
+                }
             }
         }
         return null;

@@ -21,11 +21,12 @@ const SNAP_DISTANCE = 40;
 
 // Color constants for build mode
 const COLOR_DISABLED = 'rgba(128, 128, 128, 1.0)';
+const COLOR_DELETE_CONFIRM = 'rgba(256, 0, 0, 1.0)';
 const ANCHOR_COLOR = 'rgba(0, 200, 0, 1.0)';
 const ANCHOR_COLOR_ACTIVE = 'rgba(0, 256, 0, 1.0)';
 const ACTIVE_STROKE_COLOR_DARK = '#000000';
 const ACTIVE_STROKE_COLOR_LIGHT = '#EEEEEE';
-const REPEAT_ATTENUATION = 0.4;
+const COLOR_MOD = 0.4;
 
 export type TileManagerMode = 'build' | 'render';
 export type ShapeType = 'quad' | 'tri' | 'free';
@@ -37,7 +38,7 @@ export type TileManagerEvent = {
 };
 
 type HandleType = 'anchor' | 'hover' | 'disabled';
-type TileType = 'progress' | 'hover' | 'default' | 'disabled';
+type TileType = 'progress' | 'hover' | 'default' | 'disabled' | 'selected';
 
 export class TileManager {
     canvas: HTMLCanvasElement | null = null;
@@ -47,6 +48,7 @@ export class TileManager {
     private zoom: number = 1;
     private progressPoints: AnchorPoint[] = [];
     private hoverPoint: AnchorPoint | null = null;
+    private hoveredTileIndex: number | null = null;
     private selectedTileIndex: number | null = null;
     private canCommit: boolean = true;
 
@@ -172,17 +174,35 @@ export class TileManager {
     }
 
     inputMove(x: number, y: number) {
-        if (this.mode === 'render') return;
         if (!this.canvas) return;
 
         // Translate the input coordinates to the canvas coordinates, incorporating the zoom level
         const canvasX = (x - this.canvas.width / 2) / this.zoom;
         const canvasY = (y - this.canvas.height / 2) / this.zoom;
-        [this.hoverPoint] = this.#pointOrNearestAnchor(
+        const [hoverPoint, hoverIsAnchor] = this.#pointOrNearestAnchor(
             canvasX,
             canvasY,
             this.progressPoints.length > 0,
         );
+        this.hoverPoint = hoverPoint;
+
+        // If we're not creating a new shape, look for hovered tile (with rotations in render mode)
+        if (this.progressPoints.length === 0 && !hoverIsAnchor) {
+            // Set the hovered tile
+            this.hoveredTileIndex = this.model.getNearestTileIndex(
+                hoverPoint.x,
+                hoverPoint.y,
+                this.mode === 'render',
+            );
+            // Deselect the selected tile if we're not still hovering over it
+            if (this.hoveredTileIndex !== this.selectedTileIndex) {
+                this.selectedTileIndex = null;
+            }
+        } else {
+            // Reset hover & selection if we're creating a shape or hovering over an anchor
+            this.hoveredTileIndex = null;
+            this.selectedTileIndex = null;
+        }
 
         // Set commit flag if we have a line
         if (this.progressPoints.length == 1) {
@@ -251,6 +271,10 @@ export class TileManager {
         y: number,
         includeRepeats: boolean = false,
     ): [AnchorPoint, boolean] {
+        // todo: this is dirty, clean it up
+        if (this.mode === 'render') {
+            return [newAnchor({ x, y }, this.repeats), false];
+        }
         const excludePoints =
             this.shapeType === 'free' && this.progressPoints.length >= 3
                 ? this.progressPoints.slice(1)
@@ -302,10 +326,32 @@ export class TileManager {
         const activeStrokeColor = Color(this.style.backgroundColor).isDark()
             ? ACTIVE_STROKE_COLOR_LIGHT
             : ACTIVE_STROKE_COLOR_DARK;
+
+        // Determine fill color
+        let fillColor = tile.color;
+        if (this.mode === 'build') {
+            if (type === 'disabled') {
+                fillColor = COLOR_DISABLED;
+            } else if (rotationsOnly) {
+                fillColor = Color(fillColor)
+                    .desaturate(COLOR_MOD)
+                    .lighten(COLOR_MOD)
+                    .toString();
+            } else if (type === 'hover') {
+                fillColor = Color(fillColor).lighten(COLOR_MOD).toString();
+            } else if (type === 'selected') {
+                fillColor = COLOR_DELETE_CONFIRM;
+            }
+        } else if (type === 'hover') {
+            fillColor = Color(fillColor)
+                .saturate(COLOR_MOD)
+                .lighten(COLOR_MOD)
+                .toString();
+        }
+        context.fillStyle = fillColor;
+
         if (!rotationsOnly) {
             // Draw tiles in progress area
-            context.fillStyle =
-                type === 'disabled' ? COLOR_DISABLED : tile.color;
             context.strokeStyle =
                 this.mode === 'build'
                     ? activeStrokeColor
@@ -320,13 +366,6 @@ export class TileManager {
             if (shouldStroke) context.stroke();
         } else {
             // Draw tile rotations
-            context.fillStyle =
-                this.mode === 'build'
-                    ? Color(tile.color)
-                          .desaturate(REPEAT_ATTENUATION)
-                          .lighten(REPEAT_ATTENUATION)
-                          .toString()
-                    : tile.color;
             context.strokeStyle =
                 this.mode === 'build'
                     ? this.style.backgroundColor
@@ -363,18 +402,29 @@ export class TileManager {
         context.lineCap = 'round';
 
         // Draw tile repeats first
-        this.model.tiles.forEach((tile) => {
-            // todo: check hover state
-            this.renderTile(context, tile, 'default', true);
+        this.model.tiles.forEach((tile, index) => {
+            this.renderTile(
+                context,
+                tile,
+                index === this.hoveredTileIndex ? 'hover' : 'default',
+                true,
+            );
         });
         if (this.model.progressTile) {
             this.renderTile(context, this.model.progressTile, 'progress', true);
         }
 
         // Now draw the active area
-        this.model.tiles.forEach((tile) => {
-            // todo: check hover state
-            this.renderTile(context, tile, 'default');
+        this.model.tiles.forEach((tile, index) => {
+            this.renderTile(
+                context,
+                tile,
+                index === this.selectedTileIndex
+                    ? 'selected'
+                    : index === this.hoveredTileIndex
+                      ? 'hover'
+                      : 'default',
+            );
         });
         if (this.model.progressTile) {
             this.renderTile(
