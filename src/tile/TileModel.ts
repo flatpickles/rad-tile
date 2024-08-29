@@ -13,14 +13,14 @@ import { ShapeType } from './TileTypes';
 
 export type AnchorPoint = Point & {
     repeats: number;
-    shapes: number;
+    tileIds: string[];
 };
 
-export function newAnchor(point: Point, repeats = 1, shapes = 1): AnchorPoint {
+export function newAnchor(point: Point, repeats = 1): AnchorPoint {
     return {
         ...point,
         repeats: repeats,
-        shapes,
+        tileIds: [],
     };
 }
 
@@ -48,7 +48,7 @@ function randomColor() {
 
 export class TileModel {
     anchors: Set<AnchorPoint> = new Set([
-        { x: 0, y: 0, repeats: 1, shapes: 0 },
+        { x: 0, y: 0, repeats: 1, tileIds: [] },
     ]);
     tiles: Tile[] = [];
     progressTile: Tile | null = null;
@@ -239,8 +239,11 @@ export class TileModel {
         const [removedTile] = this.tiles.splice(index, 1);
         // Remove anchors that are no longer used (except for the origin)
         removedTile.corners.forEach((corner) => {
-            corner.shapes--;
-            if (corner.shapes <= 0 && !(corner.x === 0 && corner.y === 0)) {
+            corner.tileIds = corner.tileIds.filter((tileId) => tileId !== id);
+            if (
+                corner.tileIds.length === 0 &&
+                !(corner.x === 0 && corner.y === 0)
+            ) {
                 this.anchors.delete(corner);
             }
         });
@@ -298,25 +301,27 @@ export class TileModel {
         if (!this.progressTile) {
             throw new Error('No progress tile');
         }
+        const newTile = this.progressTile;
+        this.progressTile = null;
 
         // Add the new tile, and corners as anchors
-        this.progressTile.corners.forEach((corner) => {
+        newTile.corners.forEach((corner) => {
             if (this.anchors.has(corner)) {
-                corner.shapes++;
+                corner.tileIds.push(newTile.id);
             } else {
                 this.anchors.add(corner);
+                corner.tileIds.push(newTile.id);
             }
         });
-        this.tiles.push(this.progressTile);
-        this.minRepeats = Math.min(this.minRepeats, this.progressTile.repeats);
-        this.progressTile = null;
+        this.tiles.push(newTile);
+        this.minRepeats = Math.min(this.minRepeats, newTile.repeats);
         this.currentColor = randomColor();
         this.currentId = crypto.randomUUID();
     }
 
     clear() {
         this.tiles = [];
-        this.anchors = new Set([{ x: 0, y: 0, repeats: 1, shapes: 0 }]);
+        this.anchors = new Set([{ x: 0, y: 0, repeats: 1, tileIds: [] }]);
         this.progressTile = null;
         this.minRepeats = Infinity;
     }
