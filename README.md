@@ -12,7 +12,6 @@ This is a lightweight tool for easily making radial tile patterns, like the [San
 -   info overlay: click an (i) to learn about what rad tile is (intent, usage, attribution, etc)
 -   "tile inset" (render): dial in a pixel size reduction for tiles (polyclip "offset")
 -   "center shape" (build): start with a shape in the center
--   improved mouse wheel scrolling (smoother/slower)
 -   styling touch up: typography, theme colors, dark mode, input UIs, cursor over canvas
 -   refactor (break down) TileManager
 

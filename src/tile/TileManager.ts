@@ -9,7 +9,7 @@ import {
 import { TileStyle, TileStyleDefaults } from './TileStyle';
 
 // Zoom constants
-const ZOOM_FACTOR = 0.01;
+const ZOOM_FACTOR = 0.005;
 const ZOOM_MIN = 0.1;
 const ZOOM_MAX = 10;
 

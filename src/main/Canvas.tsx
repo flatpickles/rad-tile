@@ -40,7 +40,24 @@ const Canvas: React.FC<CanvasProps> = ({ manager }) => {
         // Add wheel event listener for zooming on the canvas only
         const handleWheel = (event: WheelEvent) => {
             event.preventDefault();
-            manager.applyZoom(event.deltaY);
+            const deltaY = event.deltaY;
+            const deltaMode = event.deltaMode;
+
+            // Normalize the delta based on the deltaMode
+            let normalizedDelta = deltaY; // DOM_DELTA_PIXEL
+            if (deltaMode === 1) {
+                // DOM_DELTA_LINE
+                normalizedDelta *= 10;
+            } else if (deltaMode === 2) {
+                // DOM_DELTA_PAGE
+                normalizedDelta *= 100;
+            }
+
+            // Apply a non-linear scaling to make small changes more pronounced
+            const scaledDelta =
+                Math.sign(normalizedDelta) *
+                Math.pow(Math.abs(normalizedDelta), 0.8);
+            manager.applyZoom(scaledDelta);
         };
         canvas.addEventListener('wheel', handleWheel, { passive: false });
 
