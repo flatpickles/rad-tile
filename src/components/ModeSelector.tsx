@@ -1,4 +1,4 @@
-import { TileManagerMode } from '../tile/TileManager';
+import { TileManagerMode } from '../tile/TileTypes';
 
 interface ModeSelectorProps {
     activeMode: TileManagerMode;

@@ -9,7 +9,7 @@ import {
     rotatePoint,
     rotatePoints,
 } from '../util/Geometry';
-import { ShapeType } from './TileManager';
+import { ShapeType } from './TileTypes';
 
 export type AnchorPoint = Point & {
     repeats: number;

@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import ClearButton from '../components/ClearButton';
 import ModeSelector from '../components/ModeSelector';
 import OverlayHeader from '../components/OverlayHeader';
-import { ShapeType, TileManager, TileManagerMode } from '../tile/TileManager';
+import { TileManager } from '../tile/TileManager';
+import { ShapeType, TileManagerMode } from '../tile/TileTypes';
+import { Defaults } from '../util/Defaults';
 import ContentsBuild from './ContentsBuild';
 import ContentsRender from './ContentsRender';
-
-const DEFAULT_REPEATS = 8;
 
 interface OverlayProps {
     manager: TileManager;
@@ -14,7 +14,7 @@ interface OverlayProps {
 
 const Overlay: React.FC<OverlayProps> = ({ manager }) => {
     const [activeMode, setActiveMode] = useState<TileManagerMode>('build');
-    const [repeats, setRepeats] = useState(DEFAULT_REPEATS);
+    const [repeats, setRepeats] = useState(Defaults.repeats);
     const [baseRepeats, setBaseRepeats] = useState<number | null>(null);
     const [activeShape, setActiveShape] = useState<ShapeType>('quad');
 
@@ -24,9 +24,9 @@ const Overlay: React.FC<OverlayProps> = ({ manager }) => {
     };
 
     const handleReset = () => {
-        setRepeats(DEFAULT_REPEATS);
+        setRepeats(Defaults.repeats);
         setBaseRepeats(null);
-        setActiveShape('quad');
+        setActiveShape(Defaults.shape);
         handleModeChange('build');
         manager.reset();
     };

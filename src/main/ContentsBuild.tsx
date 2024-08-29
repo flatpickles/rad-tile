@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
 import RepeatSlider from '../components/RepeatSlider';
 import ShapeSelector from '../components/ShapeSelector';
-import { ShapeType, TileManager, TileManagerEvent } from '../tile/TileManager';
+import { TileManager } from '../tile/TileManager';
+import { ShapeType, TileManagerEvent } from '../tile/TileTypes';
 
 interface ContentsBuildProps {
     manager: TileManager;

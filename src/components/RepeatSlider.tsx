@@ -1,6 +1,5 @@
 import { useState } from 'react';
-
-const MAX_REPEATS = 16;
+import { Defaults } from '../util/Defaults';
 
 interface RepeatSliderProps {
     repeats: number;
@@ -18,7 +17,7 @@ const RepeatSlider: React.FC<RepeatSliderProps> = ({
 
     const repeatSliderVals = baseRepeats
         ? getFactors(baseRepeats)
-        : Array.from({ length: MAX_REPEATS }, (_, i) => i + 1);
+        : Array.from({ length: Defaults.maxRepeats }, (_, i) => i + 1);
     const sliderMax = repeatSliderVals.length;
 
     function handleSliderChange(e: React.ChangeEvent<HTMLInputElement>) {

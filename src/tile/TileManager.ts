@@ -1,4 +1,5 @@
 import Color from 'color';
+import { Defaults } from '../util/Defaults';
 import {
     AnchorPoint,
     newAnchor,
@@ -6,7 +7,13 @@ import {
     TileModel,
     tileRotationPoints,
 } from './TileModel';
-import { TileStyle, TileStyleDefaults } from './TileStyle';
+import {
+    ShapeType,
+    TileManagerEvent,
+    TileManagerEventType,
+    TileManagerMode,
+    TileStyle,
+} from './TileTypes';
 
 // Zoom constants
 const ZOOM_FACTOR = 0.005;
@@ -28,21 +35,12 @@ const ACTIVE_STROKE_COLOR_DARK = '#000000';
 const ACTIVE_STROKE_COLOR_LIGHT = '#EEEEEE';
 const COLOR_MOD = 0.4;
 
-export type TileManagerMode = 'build' | 'render';
-export type ShapeType = 'quad' | 'tri' | 'free';
-
-export type TileManagerEventType = 'add' | 'remove';
-export type TileManagerEvent = {
-    type: TileManagerEventType;
-    newMinRepeats: number;
-};
-
 type HandleType = 'anchor' | 'hover' | 'disabled';
 type TileType = 'progress' | 'hover' | 'default' | 'disabled' | 'selected';
 
 export class TileManager {
     canvas: HTMLCanvasElement | null = null;
-    style: TileStyle = TileStyleDefaults;
+    style: TileStyle = Defaults.style;
 
     private model: TileModel = new TileModel();
     private zoom: number = 1;
@@ -52,10 +50,9 @@ export class TileManager {
     private selectedTileId: string | null = null;
     private canCommit: boolean = true;
 
-    // todo: centralize default values
-    private mode: TileManagerMode = 'build';
-    private repeats: number = 8;
-    private shapeType: ShapeType = 'quad';
+    private mode: TileManagerMode = Defaults.mode;
+    private repeats: number = Defaults.repeats;
+    private shapeType: ShapeType = Defaults.shape;
 
     // Event listeners
 
@@ -255,9 +252,8 @@ export class TileManager {
         this.model.clear();
         this.zoom = 1;
         this.cancelInput();
-        // todo: centralize defaults
-        this.setRepeats(8);
-        this.setShape('quad');
+        this.setRepeats(Defaults.repeats);
+        this.setShape(Defaults.shape);
     }
 
     setMode(mode: TileManagerMode) {
