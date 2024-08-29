@@ -23,7 +23,8 @@ const ZOOM_MAX = 10;
 
 // Scale constants
 const HANDLE_SIZE = 14;
-const STROKE_WIDTH = 7;
+const BUILD_STROKE_WIDTH = 7;
+const BUILD_STROKE_BACKDROP_WIDTH = 3;
 const HANDLE_STROKE_WIDTH = 5;
 const SNAP_DISTANCE = 40;
 
@@ -95,7 +96,6 @@ export class TileManager {
     }
 
     inputSelect(x: number, y: number) {
-        if (this.mode === 'render') return;
         if (!this.canvas) return;
 
         // Translate the input coordinates to the canvas coordinates, incorporating the zoom level
@@ -109,6 +109,17 @@ export class TileManager {
             this.progressPoints.length > 0,
         );
         this.hoverPoint = hoverPoint;
+
+        // If we're in render mode, apply the current color to the tile
+        if (this.mode === 'render' && this.hoveredTileId) {
+            const tileObj = this.model.tiles.find(
+                (tile) => tile.id === this.hoveredTileId,
+            );
+            if (tileObj) {
+                tileObj.color = this.style.currentColor;
+            }
+            return;
+        }
 
         // Start a new tile, or select an existing one:
         if (this.progressPoints.length === 0) {
@@ -379,9 +390,17 @@ export class TileManager {
     #getTileRenderConfig(tile: Tile, rotationsOnly: boolean): RenderConfig {
         const buildMode = this.mode === 'build';
         const shouldStroke = buildMode || this.style.strokeWidth > 0;
-        const lineWidth = buildMode
-            ? STROKE_WIDTH / this.zoom
-            : this.style.strokeWidth;
+        const hasSelection = this.selectedTileId !== null;
+        const isSelected = tile.id === this.selectedTileId;
+        let lineWidth = this.style.strokeWidth;
+        if (buildMode) {
+            const isBuildBackdrop =
+                (hasSelection && !isSelected) || rotationsOnly;
+            lineWidth =
+                (isBuildBackdrop
+                    ? BUILD_STROKE_BACKDROP_WIDTH
+                    : BUILD_STROKE_WIDTH) / this.zoom;
+        }
 
         return {
             fillColor: this.#getTileFillColor(tile, rotationsOnly),
@@ -405,7 +424,7 @@ export class TileManager {
                 return this.#lowlightColor(tile.color);
             if (isHovered) return this.#highlightColor(tile.color);
         } else if (isHovered) {
-            return this.#highlightColor(tile.color);
+            return this.style.currentColor;
         }
         return tile.color;
     }
@@ -437,8 +456,9 @@ export class TileManager {
                     ? activeStrokeColor
                     : this.style.backgroundColor;
             return activeStrokeColor;
+        } else {
+            return this.style.strokeColor;
         }
-        return this.style.strokeColor;
     }
 
     #drawShape(context: CanvasRenderingContext2D, points: Point[]) {
@@ -464,7 +484,7 @@ export class TileManager {
         context.save();
         context.translate(this.canvas.width / 2, this.canvas.height / 2);
         context.scale(this.zoom, this.zoom);
-        context.lineWidth = STROKE_WIDTH / this.zoom;
+        context.lineWidth = BUILD_STROKE_WIDTH / this.zoom;
         context.lineJoin = 'round';
         context.lineCap = 'round';
 
@@ -511,7 +531,7 @@ export class TileManager {
                         this.progressPoints[0].y,
                     );
                     context.lineTo(this.hoverPoint.x, this.hoverPoint.y);
-                    context.lineWidth = STROKE_WIDTH / this.zoom;
+                    context.lineWidth = BUILD_STROKE_WIDTH / this.zoom;
                     context.stroke();
                 }
                 // Draw progress points

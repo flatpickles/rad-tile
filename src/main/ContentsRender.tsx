@@ -15,14 +15,22 @@ const ContentsRender: React.FC<ContentsRenderProps> = ({ manager }) => {
         manager.style.backgroundColor,
     );
     const [strokeWidth, setStrokeWidth] = useState(manager.style.strokeWidth);
+    const [currentColor, setCurrentColor] = useState<string>(
+        manager.style.currentColor,
+    );
 
     useEffect(() => {
         manager.style.strokeWidth = strokeWidth;
     }, [strokeWidth, manager.style]);
 
-    const handleColorChange = (color: string) => {
+    const handleStrokeColorChange = (color: string) => {
         setStrokeColor(color);
         manager.style.strokeColor = color;
+    };
+
+    const handleCurrentColorChange = (color: string) => {
+        setCurrentColor(color);
+        manager.style.currentColor = color;
     };
 
     const handleBackgroundColorChange = (color: string) => {
@@ -32,6 +40,21 @@ const ContentsRender: React.FC<ContentsRenderProps> = ({ manager }) => {
 
     return (
         <div className="flex flex-col gap-2">
+            <ColorPicker
+                color={currentColor}
+                setColor={handleCurrentColorChange}
+                label="Apply Color"
+            />
+            <ColorPicker
+                color={backgroundColor}
+                setColor={handleBackgroundColorChange}
+                label="Background Color"
+            />
+            <ColorPicker
+                color={strokeColor}
+                setColor={handleStrokeColorChange}
+                label="Stroke Color"
+            />
             <SimpleSlider
                 value={strokeWidth}
                 setValue={setStrokeWidth}
@@ -39,16 +62,6 @@ const ContentsRender: React.FC<ContentsRenderProps> = ({ manager }) => {
                 max={20}
                 step={1}
                 label="Stroke Width"
-            />
-            <ColorPicker
-                color={strokeColor}
-                setColor={handleColorChange}
-                label="Stroke Color"
-            />
-            <ColorPicker
-                color={backgroundColor}
-                setColor={handleBackgroundColorChange}
-                label="Background Color"
             />
         </div>
     );
