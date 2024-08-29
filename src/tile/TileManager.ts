@@ -29,7 +29,7 @@ const SNAP_DISTANCE = 40;
 
 // Color constants for build mode
 const COLOR_DISABLED = 'rgba(128, 128, 128, 1.0)';
-const ANCHOR_COLOR = 'rgba(0, 200, 0, 1.0)';
+const ANCHOR_COLOR = 'rgba(50, 200, 50, 1.0)';
 const ANCHOR_COLOR_ACTIVE = 'rgba(0, 256, 0, 1.0)';
 const ANCHOR_COLOR_DELETE = 'rgba(256, 0, 0, 1.0)';
 const ACTIVE_STROKE_COLOR_DARK = '#000000';
@@ -322,16 +322,21 @@ export class TileManager {
 
         // Get handle status for rendering
         const alongProgressTile =
-            this.model.progressTile &&
-            point.tileIds.includes(this.model.progressTile.id);
+            this.progressPoints.includes(point) ||
+            (this.hoverPoint?.x === point.x && this.hoverPoint?.y === point.y);
         const isDisabled = alongProgressTile && !this.canCommit;
         const isHovered =
             point.x === this.hoverPoint?.x && point.y === this.hoverPoint?.y;
+        const alongHoveredTile =
+            this.hoveredTileId !== null &&
+            point.tileIds.includes(this.hoveredTileId);
 
         // Get fill & stroke colors
         let fillColor: string;
         if (hasSelectedTile && alongSelectedTile) {
             fillColor = ANCHOR_COLOR_DELETE;
+        } else if (alongHoveredTile) {
+            fillColor = ANCHOR_COLOR_ACTIVE;
         } else {
             fillColor = isDisabled
                 ? COLOR_DISABLED
@@ -356,7 +361,7 @@ export class TileManager {
         tile: Tile,
         rotationsOnly = false,
     ) {
-        const renderConfig = this.#getRenderConfig(tile, rotationsOnly);
+        const renderConfig = this.#getTileRenderConfig(tile, rotationsOnly);
         context.fillStyle = renderConfig.fillColor;
         context.strokeStyle = renderConfig.strokeColor;
         context.lineWidth = renderConfig.lineWidth;
@@ -371,7 +376,7 @@ export class TileManager {
         });
     }
 
-    #getRenderConfig(tile: Tile, rotationsOnly: boolean): RenderConfig {
+    #getTileRenderConfig(tile: Tile, rotationsOnly: boolean): RenderConfig {
         const buildMode = this.mode === 'build';
         const shouldStroke = buildMode || this.style.strokeWidth > 0;
         const lineWidth = buildMode
@@ -379,38 +384,45 @@ export class TileManager {
             : this.style.strokeWidth;
 
         return {
-            fillColor: this.#getFillColor(tile, rotationsOnly),
-            strokeColor: this.#getStrokeColor(tile, rotationsOnly),
+            fillColor: this.#getTileFillColor(tile, rotationsOnly),
+            strokeColor: this.#getTileStrokeColor(tile, rotationsOnly),
             lineWidth,
             shouldStroke,
         };
     }
 
-    #getFillColor(tile: Tile, rotationsOnly: boolean): string {
+    #getTileFillColor(tile: Tile, rotationsOnly: boolean): string {
         const isBuildMode = this.mode === 'build';
         const isHovered = tile.id === this.hoveredTileId;
         const isDisabled =
             tile.id === this.model.progressTile?.id && !this.canCommit;
+        const hasSelection = this.selectedTileId !== null;
+        const isSelected = tile.id === this.selectedTileId;
 
         if (isBuildMode) {
             if (isDisabled) return COLOR_DISABLED;
-            if (rotationsOnly)
-                return Color(tile.color)
-                    .desaturate(COLOR_MOD)
-                    .lighten(COLOR_MOD)
-                    .toString();
-            if (isHovered)
-                return Color(tile.color).lighten(COLOR_MOD).toString();
+            if (rotationsOnly || (hasSelection && !isSelected))
+                return this.#lowlightColor(tile.color);
+            if (isHovered) return this.#highlightColor(tile.color);
         } else if (isHovered) {
-            return Color(tile.color)
-                .saturate(COLOR_MOD)
-                .lighten(COLOR_MOD)
-                .toString();
+            return this.#highlightColor(tile.color);
         }
         return tile.color;
     }
 
-    #getStrokeColor(tile: Tile, rotationsOnly: boolean): string {
+    #highlightColor(baseColor: string): string {
+        const color = Color(baseColor);
+        return color.saturate(COLOR_MOD).lighten(COLOR_MOD).toString();
+    }
+
+    #lowlightColor(baseColor: string): string {
+        return Color(baseColor)
+            .desaturate(COLOR_MOD)
+            .lighten(COLOR_MOD)
+            .toString();
+    }
+
+    #getTileStrokeColor(tile: Tile, rotationsOnly: boolean): string {
         const isBuildMode = this.mode === 'build';
         const hasSelection = this.selectedTileId !== null;
         const isSelected = tile.id === this.selectedTileId;
