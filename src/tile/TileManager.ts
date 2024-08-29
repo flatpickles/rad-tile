@@ -1,5 +1,6 @@
 import Color from 'color';
 import { Defaults } from '../util/Defaults';
+import { Point } from '../util/Geometry';
 import {
     AnchorPoint,
     newAnchor,
@@ -28,15 +29,21 @@ const SNAP_DISTANCE = 40;
 
 // Color constants for build mode
 const COLOR_DISABLED = 'rgba(128, 128, 128, 1.0)';
-const COLOR_DELETE_CONFIRM = 'rgba(256, 0, 0, 1.0)';
 const ANCHOR_COLOR = 'rgba(0, 200, 0, 1.0)';
 const ANCHOR_COLOR_ACTIVE = 'rgba(0, 256, 0, 1.0)';
+const ANCHOR_COLOR_DELETE = 'rgba(256, 0, 0, 1.0)';
 const ACTIVE_STROKE_COLOR_DARK = '#000000';
 const ACTIVE_STROKE_COLOR_LIGHT = '#EEEEEE';
 const COLOR_MOD = 0.4;
 
-type HandleType = 'anchor' | 'hover' | 'disabled';
+type HandleType = 'anchor' | 'hover' | 'disabled' | 'selected';
 type TileType = 'progress' | 'hover' | 'default' | 'disabled' | 'selected';
+type RenderConfig = {
+    fillColor: string;
+    strokeColor: string;
+    lineWidth: number;
+    shouldStroke: boolean;
+};
 
 export class TileManager {
     canvas: HTMLCanvasElement | null = null;
@@ -298,13 +305,27 @@ export class TileManager {
         point: AnchorPoint,
         type: HandleType,
     ) {
+        // Don't render handles that are not along the selected tile
+        const hasSelectedTile = this.selectedTileId !== null;
+        const alongSelectedTile =
+            this.selectedTileId !== null &&
+            point.tileIds.includes(this.selectedTileId);
+        if (hasSelectedTile && !alongSelectedTile) return;
+
+        // Paint handles red along selected tile
+        if (hasSelectedTile && alongSelectedTile) {
+            context.fillStyle = ANCHOR_COLOR_DELETE;
+        } else {
+            context.fillStyle =
+                type === 'anchor'
+                    ? ANCHOR_COLOR
+                    : type === 'hover'
+                      ? ANCHOR_COLOR_ACTIVE
+                      : COLOR_DISABLED;
+        }
+
+        // Draw the handle
         const scaledHandleSize = HANDLE_SIZE / this.zoom; // constant across zoom levels
-        context.fillStyle =
-            type === 'anchor'
-                ? ANCHOR_COLOR
-                : type === 'hover'
-                  ? ANCHOR_COLOR_ACTIVE
-                  : COLOR_DISABLED;
         context.beginPath();
         context.arc(point.x, point.y, scaledHandleSize, 0, 2 * Math.PI);
         context.fill();
@@ -318,70 +339,89 @@ export class TileManager {
         type: TileType,
         rotationsOnly = false,
     ) {
-        const shouldStroke =
-            this.mode === 'build' || this.style.strokeWidth > 0;
-        context.lineWidth =
-            this.mode === 'build'
-                ? STROKE_WIDTH / this.zoom
-                : this.style.strokeWidth;
-        const activeStrokeColor = Color(this.style.backgroundColor).isDark()
-            ? ACTIVE_STROKE_COLOR_LIGHT
-            : ACTIVE_STROKE_COLOR_DARK;
+        const renderConfig = this.#getRenderConfig(tile, type, rotationsOnly);
+        context.fillStyle = renderConfig.fillColor;
+        context.strokeStyle = renderConfig.strokeColor;
+        context.lineWidth = renderConfig.lineWidth;
 
-        // Determine fill color
-        let fillColor = tile.color;
+        const points = rotationsOnly
+            ? tileRotationPoints(tile)
+            : [tile.corners];
+        points.forEach((pointSet) => {
+            this.#drawShape(context, pointSet);
+            context.fill();
+            if (renderConfig.shouldStroke) context.stroke();
+        });
+    }
+
+    #getRenderConfig(
+        tile: Tile,
+        type: TileType,
+        rotationsOnly: boolean,
+    ): RenderConfig {
+        const buildMode = this.mode === 'build';
+        const shouldStroke = buildMode || this.style.strokeWidth > 0;
+        const lineWidth = buildMode
+            ? STROKE_WIDTH / this.zoom
+            : this.style.strokeWidth;
+
+        return {
+            fillColor: this.#getFillColor(tile.color, type, rotationsOnly),
+            strokeColor: this.#getStrokeColor(type, buildMode, rotationsOnly),
+            lineWidth,
+            shouldStroke,
+        };
+    }
+
+    #getFillColor(
+        baseColor: string,
+        type: TileType,
+        rotationsOnly: boolean,
+    ): string {
         if (this.mode === 'build') {
-            if (type === 'disabled') {
-                fillColor = COLOR_DISABLED;
-            } else if (rotationsOnly) {
-                fillColor = Color(fillColor)
+            if (type === 'disabled') return COLOR_DISABLED;
+            if (rotationsOnly)
+                return Color(baseColor)
                     .desaturate(COLOR_MOD)
                     .lighten(COLOR_MOD)
                     .toString();
-            } else if (type === 'hover') {
-                fillColor = Color(fillColor).lighten(COLOR_MOD).toString();
-            } else if (type === 'selected') {
-                fillColor = COLOR_DELETE_CONFIRM;
-            }
+            if (type === 'hover')
+                return Color(baseColor).lighten(COLOR_MOD).toString();
         } else if (type === 'hover') {
-            fillColor = Color(fillColor)
+            return Color(baseColor)
                 .saturate(COLOR_MOD)
                 .lighten(COLOR_MOD)
                 .toString();
         }
-        context.fillStyle = fillColor;
+        return baseColor;
+    }
 
-        if (!rotationsOnly) {
-            // Draw tiles in progress area
-            context.strokeStyle =
-                this.mode === 'build'
+    #getStrokeColor(
+        type: TileType,
+        buildMode: boolean,
+        rotationsOnly: boolean,
+    ): string {
+        if (buildMode) {
+            const activeStrokeColor = Color(this.style.backgroundColor).isDark()
+                ? ACTIVE_STROKE_COLOR_LIGHT
+                : ACTIVE_STROKE_COLOR_DARK;
+            if (rotationsOnly) return this.style.backgroundColor;
+            if (this.selectedTileId !== null)
+                return type === 'selected'
                     ? activeStrokeColor
-                    : this.style.strokeColor;
-            context.beginPath();
-            context.moveTo(tile.corners[0].x, tile.corners[0].y);
-            for (let i = 1; i < tile.corners.length; i++) {
-                context.lineTo(tile.corners[i].x, tile.corners[i].y);
-            }
-            context.closePath();
-            context.fill();
-            if (shouldStroke) context.stroke();
-        } else {
-            // Draw tile rotations
-            context.strokeStyle =
-                this.mode === 'build'
-                    ? this.style.backgroundColor
-                    : this.style.strokeColor;
-            tileRotationPoints(tile).forEach((rotatedPoints) => {
-                context.beginPath();
-                context.moveTo(rotatedPoints[0].x, rotatedPoints[0].y);
-                for (let i = 1; i < rotatedPoints.length; i++) {
-                    context.lineTo(rotatedPoints[i].x, rotatedPoints[i].y);
-                }
-                context.closePath();
-                context.fill();
-                if (shouldStroke) context.stroke();
-            });
+                    : this.style.backgroundColor;
+            return activeStrokeColor;
         }
+        return this.style.strokeColor;
+    }
+
+    #drawShape(context: CanvasRenderingContext2D, points: Point[]) {
+        context.beginPath();
+        context.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) {
+            context.lineTo(points[i].x, points[i].y);
+        }
+        context.closePath();
     }
 
     render() {
@@ -403,23 +443,33 @@ export class TileManager {
         context.lineCap = 'round';
 
         // Draw tile repeats first
+        const selectedRepeats: Tile[] = [];
         this.model.tiles.forEach((tile) => {
-            const type = tile.id === this.hoveredTileId ? 'hover' : 'default';
-            this.renderTile(context, tile, type, true);
+            if (tile.id === this.selectedTileId) {
+                selectedRepeats.push(tile);
+            } else {
+                const type =
+                    tile.id === this.hoveredTileId ? 'hover' : 'default';
+                this.renderTile(context, tile, type, true);
+            }
         });
         if (this.model.progressTile) {
             this.renderTile(context, this.model.progressTile, 'progress', true);
         }
+        selectedRepeats.forEach((tile) => {
+            this.renderTile(context, tile, 'selected', true);
+        });
 
         // Now draw the active area
+        let selectedTile: Tile | null = null;
         this.model.tiles.forEach((tile) => {
-            const type =
-                tile.id === this.selectedTileId
-                    ? 'selected'
-                    : tile.id === this.hoveredTileId
-                      ? 'hover'
-                      : 'default';
-            this.renderTile(context, tile, type);
+            if (tile.id === this.selectedTileId) {
+                selectedTile = tile;
+            } else {
+                const type =
+                    tile.id === this.hoveredTileId ? 'hover' : 'default';
+                this.renderTile(context, tile, type);
+            }
         });
         if (this.model.progressTile) {
             this.renderTile(
@@ -427,6 +477,9 @@ export class TileManager {
                 this.model.progressTile,
                 this.canCommit ? 'progress' : 'disabled',
             );
+        }
+        if (selectedTile) {
+            this.renderTile(context, selectedTile, 'selected');
         }
 
         if (this.mode === 'build') {

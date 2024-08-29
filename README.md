@@ -4,8 +4,7 @@ This is a lightweight tool for easily making radial tile patterns, like the [San
 
 ## short todo:
 
--   draw selected tiles on top
--   show delete selection (build): hide other build strokes and corners, use red color in corner dots
+-   show delete selection (build): fade unselected shapes
 -   better hover color treatment: borders in build, use "apply color" in render (and click to commit)
 -   "apply color" param (render): pick a color and apply it to selected shapes
 -   "randomize new color" param (build): boolean, either uses a random new color or the latest "apply color" for new shapes
