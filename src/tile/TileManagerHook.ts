@@ -15,7 +15,7 @@ export function useTileManager() {
             const hot = import.meta.hot;
             hot.on('vite:beforeUpdate', () => {
                 console.log('Hot update detected, resetting TileManager');
-                managerRef.current?.reset();
+                managerRef.current = new TileManager();
             });
         }
 

@@ -29,6 +29,7 @@ export type Tile = {
     repeats: number;
     color: string;
     id: string;
+    removable: boolean;
 };
 
 export function tileRotationPoints(tile: Tile): Point[][] {
@@ -40,6 +41,26 @@ export function tileRotationPoints(tile: Tile): Point[][] {
         rotatedTilePoints.push(rotatedTile);
     }
     return rotatedTilePoints;
+}
+
+function getCenterTile(pointCount: number, radius = 100): Tile {
+    const center = { x: 0, y: 0 };
+    const corners = Array.from({ length: pointCount }, (_, i) => {
+        const angle = (2 * Math.PI * i) / pointCount;
+        return {
+            x: center.x + Math.cos(angle) * radius,
+            y: center.y + Math.sin(angle) * radius,
+            repeats: 1,
+            tileIds: [],
+        };
+    });
+    return {
+        corners,
+        repeats: 1,
+        color: randomColor(),
+        id: crypto.randomUUID(),
+        removable: false,
+    };
 }
 
 function randomColor() {
@@ -55,6 +76,14 @@ export class TileModel {
     minRepeats: number = Infinity;
     currentColor: string = randomColor();
     currentId: string = crypto.randomUUID();
+
+    initializeWithStartTile(pointCount: number) {
+        this.clear();
+        this.anchors = new Set();
+        this.progressTile = getCenterTile(pointCount);
+        this.commitProgressTile();
+        this.minRepeats = pointCount; // todo: allow for higher repeats
+    }
 
     getNearestAnchor(
         x: number,
@@ -213,30 +242,39 @@ export class TileModel {
         return true;
     }
 
-    getNearestTileId(
+    getNearestTile(
         x: number,
         y: number,
         withPointRotations = false,
-    ): string | null {
+    ): Tile | null {
         for (let i = this.tiles.length - 1; i >= 0; i--) {
             const shapesToCheck = withPointRotations
                 ? [...tileRotationPoints(this.tiles[i]), this.tiles[i].corners]
                 : [this.tiles[i].corners];
             for (const shape of shapesToCheck) {
                 if (isPointInShape({ x, y }, shape)) {
-                    return this.tiles[i].id;
+                    return this.tiles[i];
                 }
             }
         }
         return null;
     }
 
-    removeTileWithId(id: string) {
+    removeTileWithId(id: string): boolean {
+        // Find the tile
         const index = this.tiles.findIndex((tile) => tile.id === id);
+
+        // If the tile is not found or cannot be removed, return false
         if (index === -1) {
-            throw new Error(`Tile with id ${id} not found`);
+            return false;
         }
+        if (!this.tiles[index].removable) {
+            return false;
+        }
+
+        // Otherwise, remove the tile
         const [removedTile] = this.tiles.splice(index, 1);
+
         // Remove anchors that are no longer used (except for the origin)
         removedTile.corners.forEach((corner) => {
             corner.tileIds = corner.tileIds.filter((tileId) => tileId !== id);
@@ -247,12 +285,16 @@ export class TileModel {
                 this.anchors.delete(corner);
             }
         });
+
         // Update minRepeats
         let newMinRepeats = Infinity;
         this.tiles.forEach((tile) => {
             newMinRepeats = Math.min(newMinRepeats, tile.repeats);
         });
         this.minRepeats = newMinRepeats;
+
+        // Mission complete
+        return true;
     }
 
     setProgressTile(
@@ -293,6 +335,7 @@ export class TileModel {
             repeats,
             color: this.currentColor,
             id: this.currentId,
+            removable: true,
         };
         return this.canCommitTile(this.progressTile);
     }
