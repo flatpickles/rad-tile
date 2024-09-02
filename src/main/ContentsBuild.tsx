@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import CenterShapeSelector from '../components/CenterShapeSelector';
 import RepeatSlider from '../components/RepeatSlider';
 import ShapeSelector from '../components/ShapeSelector';
 import { TileManager } from '../tile/TileManager';
@@ -48,7 +49,7 @@ const ContentsBuild: React.FC<ContentsBuildProps> = ({
     });
 
     return (
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-4">
             <ShapeSelector
                 activeShape={activeShape}
                 handleShapeChange={handleShapeChange}
@@ -58,6 +59,7 @@ const ContentsBuild: React.FC<ContentsBuildProps> = ({
                 setRepeats={repeatSliderSet}
                 baseRepeats={baseRepeats}
             />
+            <CenterShapeSelector enabled={true} />
         </div>
     );
 };

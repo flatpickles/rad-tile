@@ -5,6 +5,7 @@ interface SimpleSliderProps {
     max: number;
     step?: number;
     label?: string;
+    disabled?: boolean;
 }
 
 const SimpleSlider: React.FC<SimpleSliderProps> = ({
@@ -14,6 +15,7 @@ const SimpleSlider: React.FC<SimpleSliderProps> = ({
     max,
     step = 1,
     label,
+    disabled = false,
 }) => {
     function handleSliderChange(e: React.ChangeEvent<HTMLInputElement>) {
         const newValue = parseFloat(e.target.value);
@@ -24,7 +26,11 @@ const SimpleSlider: React.FC<SimpleSliderProps> = ({
         <div className="flex flex-col">
             {label && (
                 <div className="flex justify-between">
-                    <p>
+                    <p
+                        className={`${
+                            disabled ? 'btn-secondary opacity-50' : ''
+                        }`}
+                    >
                         {label}: {value}
                     </p>
                 </div>
@@ -36,7 +42,8 @@ const SimpleSlider: React.FC<SimpleSliderProps> = ({
                 step={step}
                 value={value}
                 onChange={handleSliderChange}
-                className="range range-xs"
+                className={`range range-xs ${disabled ? 'btn-secondary opacity-50' : ''}`}
+                disabled={disabled}
             />
         </div>
     );
