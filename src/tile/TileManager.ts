@@ -59,6 +59,10 @@ export class TileManager {
     private repeats: number = Defaults.repeats;
     private shapeType: ShapeType = Defaults.shape;
 
+    constructor() {
+        this.model.initializeWithStartTile(3);
+    }
+
     // Event listeners
 
     listeners: { [event: string]: ((event: TileManagerEvent) => void)[] } = {};
@@ -126,22 +130,28 @@ export class TileManager {
             if (hoverIsAnchor) {
                 this.progressPoints.push(this.hoverPoint);
             } else {
-                // Select the nearest tile
-                const newSelectedTileId = this.model.getNearestTileId(
+                // Select the nearest tile if it's removable
+                const tileToSelect = this.model.getNearestTile(
                     this.hoverPoint.x,
                     this.hoverPoint.y,
                 );
+                if (!tileToSelect?.removable) return;
+                const newSelectedTileId = tileToSelect?.id;
                 // Change the selected tile, or remove it if it's already selected
                 if (
                     newSelectedTileId !== null &&
                     this.selectedTileId === newSelectedTileId
                 ) {
-                    this.model.removeTileWithId(this.selectedTileId);
-                    this.selectedTileId = null;
-                    this.#broadcast({
-                        type: 'remove',
-                        newMinRepeats: this.model.minRepeats,
-                    });
+                    const tileRemoved = this.model.removeTileWithId(
+                        this.selectedTileId,
+                    );
+                    if (tileRemoved) {
+                        this.selectedTileId = null;
+                        this.#broadcast({
+                            type: 'remove',
+                            newMinRepeats: this.model.minRepeats,
+                        });
+                    }
                 } else {
                     this.selectedTileId = newSelectedTileId;
                 }
@@ -201,11 +211,12 @@ export class TileManager {
         // If we're not creating a new shape, look for hovered tile (with rotations in render mode)
         if (this.progressPoints.length === 0 && !hoverIsAnchor) {
             // Set the hovered tile
-            this.hoveredTileId = this.model.getNearestTileId(
-                hoverPoint.x,
-                hoverPoint.y,
-                this.mode === 'render',
-            );
+            this.hoveredTileId =
+                this.model.getNearestTile(
+                    hoverPoint.x,
+                    hoverPoint.y,
+                    this.mode === 'render',
+                )?.id ?? null;
             // Deselect the selected tile if we're not still hovering over it
             if (this.hoveredTileId !== this.selectedTileId) {
                 this.selectedTileId = null;
