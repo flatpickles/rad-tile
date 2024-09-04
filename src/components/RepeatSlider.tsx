@@ -28,7 +28,7 @@ const RepeatSlider: React.FC<RepeatSliderProps> = ({
     }
 
     return (
-        <div className="flex flex-col">
+        <div className="flex flex-col gap-1">
             <div className="flex justify-between">
                 <p>Repeats: {repeats}</p>
                 {baseRepeats && <p>Base: {baseRepeats}</p>}

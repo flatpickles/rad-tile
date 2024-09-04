@@ -17,6 +17,9 @@ const Overlay: React.FC<OverlayProps> = ({ manager }) => {
     const [repeats, setRepeats] = useState(Defaults.repeats);
     const [baseRepeats, setBaseRepeats] = useState<number | null>(null);
     const [activeShape, setActiveShape] = useState<ShapeType>('quad');
+    const [centerShapeAvailable, setCenterShapeAvailable] = useState(true);
+    const [useCenterShape, setUseCenterShape] = useState(false);
+    const [shapeCorners, setShapeCorners] = useState(3);
 
     const handleModeChange = (mode: TileManagerMode) => {
         setActiveMode(mode);
@@ -27,6 +30,9 @@ const Overlay: React.FC<OverlayProps> = ({ manager }) => {
         setRepeats(Defaults.repeats);
         setBaseRepeats(null);
         setActiveShape(Defaults.shape);
+        setCenterShapeAvailable(true);
+        setUseCenterShape(false);
+        setShapeCorners(3);
         handleModeChange('build');
         manager.reset();
     };
@@ -50,6 +56,12 @@ const Overlay: React.FC<OverlayProps> = ({ manager }) => {
                     setBaseRepeats={setBaseRepeats}
                     activeShape={activeShape}
                     setActiveShape={setActiveShape}
+                    centerShapeAvailable={centerShapeAvailable}
+                    setCenterShapeAvailable={setCenterShapeAvailable}
+                    useCenterShape={useCenterShape}
+                    setUseCenterShape={setUseCenterShape}
+                    shapeCorners={shapeCorners}
+                    setShapeCorners={setShapeCorners}
                 />
             )}
             {activeMode === 'render' && <ContentsRender manager={manager} />}
