@@ -21,6 +21,8 @@ interface ContentsBuildProps {
     setShapeCorners: (shapeCorners: number) => void;
 }
 
+// TODO: move state & mutation logic to react context (instead of prop drilling)
+
 const ContentsBuild: React.FC<ContentsBuildProps> = ({
     manager,
     repeats,
@@ -66,7 +68,7 @@ const ContentsBuild: React.FC<ContentsBuildProps> = ({
     const handleCenterShapeCornersChange = (corners: number) => {
         setShapeCorners(corners);
         if (useCenterShape) {
-            initializeWithCenterShape(shapeCorners);
+            initializeWithCenterShape(corners);
         }
     };
 
