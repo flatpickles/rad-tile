@@ -2,12 +2,6 @@ import React from 'react';
 import { Defaults } from '../util/Defaults';
 import SimpleSlider from './SimpleSlider';
 
-/*
-    todo:
-    - clean up state stuff
-    - allow multiples for new base
-*/
-
 interface CenterShapeSelectorProps {
     enabled: boolean;
     shapeCorners: number;
