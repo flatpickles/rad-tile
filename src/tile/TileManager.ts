@@ -59,10 +59,6 @@ export class TileManager {
     private repeats: number = Defaults.repeats;
     private shapeType: ShapeType = Defaults.shape;
 
-    constructor() {
-        this.model.initializeWithStartTile(3);
-    }
-
     // Event listeners
 
     listeners: { [event: string]: ((event: TileManagerEvent) => void)[] } = {};
@@ -135,7 +131,7 @@ export class TileManager {
                     this.hoverPoint.x,
                     this.hoverPoint.y,
                 );
-                if (!tileToSelect?.removable) return;
+                if (tileToSelect?.isCenter) return;
                 const newSelectedTileId = tileToSelect?.id;
                 // Change the selected tile, or remove it if it's already selected
                 if (
@@ -150,10 +146,11 @@ export class TileManager {
                         this.#broadcast({
                             type: 'remove',
                             newMinRepeats: this.model.minRepeats,
+                            currentTiles: this.model.tiles,
                         });
                     }
                 } else {
-                    this.selectedTileId = newSelectedTileId;
+                    this.selectedTileId = newSelectedTileId ?? null;
                 }
             }
         }
@@ -261,11 +258,17 @@ export class TileManager {
         this.#broadcast({
             type: 'add',
             newMinRepeats: this.model.minRepeats,
+            currentTiles: this.model.tiles,
         });
         return true;
     }
 
     // State handling
+
+    initializeWithCenterShape(corners: number) {
+        this.reset(false);
+        this.model.initializeWithStartTile(corners);
+    }
 
     setRepeats(repeats: number) {
         this.repeats = repeats;
@@ -274,12 +277,15 @@ export class TileManager {
         }
     }
 
-    reset() {
+    reset(setDefaults: boolean = true) {
         this.model.clear();
         this.zoom = 1;
         this.cancelInput();
-        this.setRepeats(Defaults.repeats);
-        this.setShape(Defaults.shape);
+        this.progressPoints = [];
+        if (setDefaults) {
+            this.setRepeats(Defaults.repeats);
+            this.setShape(Defaults.shape);
+        }
     }
 
     setMode(mode: TileManagerMode) {

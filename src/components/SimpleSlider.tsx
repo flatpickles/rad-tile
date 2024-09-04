@@ -23,7 +23,7 @@ const SimpleSlider: React.FC<SimpleSliderProps> = ({
     }
 
     return (
-        <div className="flex flex-col">
+        <div className="flex flex-col gap-1">
             {label && (
                 <div className="flex justify-between">
                     <p

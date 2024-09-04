@@ -29,7 +29,7 @@ export type Tile = {
     repeats: number;
     color: string;
     id: string;
-    removable: boolean;
+    isCenter: boolean;
 };
 
 export function tileRotationPoints(tile: Tile): Point[][] {
@@ -59,7 +59,7 @@ function getCenterTile(pointCount: number, radius = 100): Tile {
         repeats: 1,
         color: randomColor(),
         id: crypto.randomUUID(),
-        removable: false,
+        isCenter: true,
     };
 }
 
@@ -268,7 +268,7 @@ export class TileModel {
         if (index === -1) {
             return false;
         }
-        if (!this.tiles[index].removable) {
+        if (this.tiles[index].isCenter) {
             return false;
         }
 
@@ -289,6 +289,7 @@ export class TileModel {
         // Update minRepeats
         let newMinRepeats = Infinity;
         this.tiles.forEach((tile) => {
+            if (tile.isCenter) return;
             newMinRepeats = Math.min(newMinRepeats, tile.repeats);
         });
         this.minRepeats = newMinRepeats;
@@ -335,7 +336,7 @@ export class TileModel {
             repeats,
             color: this.currentColor,
             id: this.currentId,
-            removable: true,
+            isCenter: false,
         };
         return this.canCommitTile(this.progressTile);
     }
