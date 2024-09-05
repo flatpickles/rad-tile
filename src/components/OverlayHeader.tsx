@@ -1,17 +1,12 @@
+import { FaCircleInfo } from 'react-icons/fa6';
+
 const OverlayHeader: React.FC = () => {
     return (
-        <div>
+        <div className="flex flex-row justify-between items-start">
             <h2 className="text-2xl font-bold">Rad Tile</h2>
-            <p className="text-sm">
-                ... is a{' '}
-                <a
-                    className="text-blue-500 hover:underline"
-                    href="https://github.com/flatpickles/rad-tile"
-                >
-                    work in progress
-                </a>
-                !
-            </p>
+            <a href="https://github.com/flatpickles/rad-tile">
+                <FaCircleInfo className="text-xl text-neutral-content cursor-pointer hover:text-base-content" />
+            </a>
         </div>
     );
 };
