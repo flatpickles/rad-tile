@@ -2,42 +2,26 @@ import React, { useEffect } from 'react';
 import CenterShapeSelector from '../components/CenterShapeSelector';
 import RepeatSlider from '../components/RepeatSlider';
 import ShapeSelector from '../components/ShapeSelector';
-import { TileManager } from '../tile/TileManager';
 import { ShapeType, TileManagerEvent } from '../tile/TileTypes';
+import useStateContext from './StateContext';
 
-interface ContentsBuildProps {
-    manager: TileManager;
-    repeats: number;
-    setRepeats: (repeats: number) => void;
-    activeShape: ShapeType;
-    setActiveShape: (shape: ShapeType) => void;
-    baseRepeats: number | null;
-    setBaseRepeats: (baseRepeats: number | null) => void;
-    centerShapeAvailable: boolean;
-    setCenterShapeAvailable: (centerShapeAvailable: boolean) => void;
-    useCenterShape: boolean;
-    setUseCenterShape: (useCenterShape: boolean) => void;
-    shapeCorners: number;
-    setShapeCorners: (shapeCorners: number) => void;
-}
+const ContentsBuild: React.FC = () => {
+    const {
+        manager,
+        repeats,
+        setRepeats,
+        baseRepeats,
+        setBaseRepeats,
+        activeShape,
+        setActiveShape,
+        centerShapeEnabled,
+        setCenterShapeEnabled,
+        useCenterShape,
+        setUseCenterShape,
+        shapeCorners,
+        setShapeCorners,
+    } = useStateContext();
 
-// TODO: move state & mutation logic to react context (instead of prop drilling)
-
-const ContentsBuild: React.FC<ContentsBuildProps> = ({
-    manager,
-    repeats,
-    setRepeats,
-    baseRepeats,
-    setBaseRepeats,
-    activeShape,
-    setActiveShape,
-    centerShapeAvailable,
-    setCenterShapeAvailable,
-    useCenterShape,
-    setUseCenterShape,
-    shapeCorners,
-    setShapeCorners,
-}) => {
     const initializeWithCenterShape = (corners: number) => {
         manager.initializeWithCenterShape(corners);
         setRepeats(corners);
@@ -84,7 +68,7 @@ const ContentsBuild: React.FC<ContentsBuildProps> = ({
                       ? event.currentTiles[0].corners.length
                       : null,
             );
-            setCenterShapeAvailable(
+            setCenterShapeEnabled(
                 event.currentTiles.length === 0 || centerOnly,
             );
         };
@@ -108,7 +92,7 @@ const ContentsBuild: React.FC<ContentsBuildProps> = ({
                 baseRepeats={baseRepeats}
             />
             <CenterShapeSelector
-                enabled={centerShapeAvailable}
+                enabled={centerShapeEnabled}
                 shapeCorners={shapeCorners}
                 setShapeCorners={handleCenterShapeCornersChange}
                 useCenterShape={useCenterShape}

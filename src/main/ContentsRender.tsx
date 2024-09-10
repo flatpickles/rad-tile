@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import ColorPicker from '../components/ColorPicker';
 import SimpleSlider from '../components/SimpleSlider';
-import { TileManager } from '../tile/TileManager';
+import useStateContext from './StateContext';
 
-interface ContentsRenderProps {
-    manager: TileManager;
-}
+const ContentsRender: React.FC = () => {
+    const { manager } = useStateContext();
 
-const ContentsRender: React.FC<ContentsRenderProps> = ({ manager }) => {
     const [strokeColor, setStrokeColor] = useState<string>(
         manager.style.strokeColor,
     );

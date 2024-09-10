@@ -2,24 +2,24 @@ import React, { useState } from 'react';
 import ClearButton from '../components/ClearButton';
 import ModeSelector from '../components/ModeSelector';
 import OverlayHeader from '../components/OverlayHeader';
-import { TileManager } from '../tile/TileManager';
-import { ShapeType, TileManagerMode } from '../tile/TileTypes';
+import { TileManagerMode } from '../tile/TileTypes';
 import { Defaults } from '../util/Defaults';
 import ContentsBuild from './ContentsBuild';
 import ContentsRender from './ContentsRender';
+import useStateContext from './StateContext';
 
-interface OverlayProps {
-    manager: TileManager;
-}
-
-const Overlay: React.FC<OverlayProps> = ({ manager }) => {
+const Overlay: React.FC = () => {
+    const { manager } = useStateContext();
     const [activeMode, setActiveMode] = useState<TileManagerMode>('build');
-    const [repeats, setRepeats] = useState(Defaults.repeats);
-    const [baseRepeats, setBaseRepeats] = useState<number | null>(null);
-    const [activeShape, setActiveShape] = useState<ShapeType>('quad');
-    const [centerShapeAvailable, setCenterShapeAvailable] = useState(true);
-    const [useCenterShape, setUseCenterShape] = useState(false);
-    const [shapeCorners, setShapeCorners] = useState(3);
+
+    const {
+        setRepeats,
+        setBaseRepeats,
+        setActiveShape,
+        setCenterShapeEnabled,
+        setUseCenterShape,
+        setShapeCorners,
+    } = useStateContext();
 
     const handleModeChange = (mode: TileManagerMode) => {
         setActiveMode(mode);
@@ -30,7 +30,7 @@ const Overlay: React.FC<OverlayProps> = ({ manager }) => {
         setRepeats(Defaults.repeats);
         setBaseRepeats(null);
         setActiveShape(Defaults.shape);
-        setCenterShapeAvailable(true);
+        setCenterShapeEnabled(true);
         setUseCenterShape(false);
         setShapeCorners(3);
         handleModeChange('build');
@@ -47,24 +47,8 @@ const Overlay: React.FC<OverlayProps> = ({ manager }) => {
                 />
                 <ClearButton handleClear={handleReset} />
             </div>
-            {activeMode === 'build' && (
-                <ContentsBuild
-                    manager={manager}
-                    repeats={repeats}
-                    setRepeats={setRepeats}
-                    baseRepeats={baseRepeats}
-                    setBaseRepeats={setBaseRepeats}
-                    activeShape={activeShape}
-                    setActiveShape={setActiveShape}
-                    centerShapeAvailable={centerShapeAvailable}
-                    setCenterShapeAvailable={setCenterShapeAvailable}
-                    useCenterShape={useCenterShape}
-                    setUseCenterShape={setUseCenterShape}
-                    shapeCorners={shapeCorners}
-                    setShapeCorners={setShapeCorners}
-                />
-            )}
-            {activeMode === 'render' && <ContentsRender manager={manager} />}
+            {activeMode === 'build' && <ContentsBuild />}
+            {activeMode === 'render' && <ContentsRender />}
         </div>
     );
 };

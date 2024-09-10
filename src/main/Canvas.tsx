@@ -1,14 +1,11 @@
 import React, { useEffect, useRef } from 'react';
-import { TileManager } from '../tile/TileManager';
+import useStateContext from './StateContext';
 
 const dpr = window.devicePixelRatio || 1;
 
-interface CanvasProps {
-    manager: TileManager;
-}
-
-const Canvas: React.FC<CanvasProps> = ({ manager }) => {
+const Canvas: React.FC = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const { manager } = useStateContext();
 
     useEffect(() => {
         const canvas = canvasRef.current;

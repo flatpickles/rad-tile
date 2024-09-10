@@ -3,17 +3,18 @@ import { useTileManager } from '../tile/TileManagerHook';
 import useIsTouchDevice from '../util/TouchDeviceHook';
 import Canvas from './Canvas';
 import Overlay from './Overlay';
+import { StateProvider } from './StateContext';
 
 const App: React.FC = () => {
     const manager = useTileManager();
     const isTouchDevice = useIsTouchDevice();
 
     return (
-        <>
+        <StateProvider manager={manager}>
             {!isTouchDevice ? (
                 <div className="relative h-screen w-screen select-none">
-                    <Canvas manager={manager} />
-                    <Overlay manager={manager} />
+                    <Canvas />
+                    <Overlay />
                 </div>
             ) : (
                 <div className="flex w-screen items-center justify-center px-16 py-32">
@@ -24,7 +25,7 @@ const App: React.FC = () => {
                     </p>
                 </div>
             )}
-        </>
+        </StateProvider>
     );
 };
 
