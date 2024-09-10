@@ -19,7 +19,7 @@ export function useTileManager() {
             });
         }
 
-        // Animate refreshes
+        // Start and maintain the animation loop
         const animate = () => {
             if (managerRef.current) {
                 managerRef.current.render();

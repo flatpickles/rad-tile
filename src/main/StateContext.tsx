@@ -1,6 +1,10 @@
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { TileManager } from '../tile/TileManager';
-import { ShapeType, TileManagerMode } from '../tile/TileTypes';
+import {
+    ShapeType,
+    TileManagerEvent,
+    TileManagerMode,
+} from '../tile/TileTypes';
 import { Defaults } from '../util/Defaults';
 
 interface StateContextType {
@@ -11,8 +15,8 @@ interface StateContextType {
     setActiveShape: (shape: ShapeType) => void;
     baseRepeats: number | null;
     setBaseRepeats: (baseRepeats: number | null) => void;
-    centerShapeEnabled: boolean;
-    setCenterShapeEnabled: (centerShapeEnabled: boolean) => void;
+    centerShapeAvailable: boolean;
+    setCenterShapeAvailable: (centerShapeAvailable: boolean) => void;
     useCenterShape: boolean;
     setUseCenterShape: (useCenterShape: boolean) => void;
     shapeCorners: number;
@@ -28,12 +32,7 @@ export const StateProvider: React.FC<{
     children: React.ReactNode;
     manager: TileManager;
 }> = ({ children, manager }) => {
-    const [repeats, setRepeats] = useState(Defaults.repeats);
-    const [activeShape, setActiveShape] = useState<ShapeType>(Defaults.shape);
-    const [baseRepeats, setBaseRepeats] = useState<number | null>(null);
-    const [centerShapeEnabled, setCenterShapeEnabled] = useState(true);
-    const [useCenterShape, setUseCenterShape] = useState(false);
-    const [shapeCorners, setShapeCorners] = useState(3);
+    // Mode state:
     const [activeMode, setActiveModeState] = useState<TileManagerMode>(
         Defaults.mode,
     );
@@ -47,13 +46,82 @@ export const StateProvider: React.FC<{
         setRepeats(Defaults.repeats);
         setBaseRepeats(null);
         setActiveShape(Defaults.shape);
-        setCenterShapeEnabled(true);
-        setUseCenterShape(false);
-        setShapeCorners(3);
+        setCenterShapeAvailable(true);
+        setUseCenterShapeState(false);
+        setShapeCornersState(3);
         setActiveModeState(Defaults.mode);
         manager.reset();
     };
 
+    // Build state:
+    const [repeats, setRepeats] = useState(Defaults.repeats);
+    const [activeShape, setActiveShape] = useState<ShapeType>(Defaults.shape);
+    const [baseRepeats, setBaseRepeats] = useState<number | null>(null);
+    const [centerShapeAvailable, setCenterShapeAvailable] = useState(true);
+    const [useCenterShape, setUseCenterShapeState] = useState(false);
+    const [shapeCorners, setShapeCornersState] = useState(3);
+
+    const initializeWithCenterShape = (corners: number) => {
+        manager.initializeWithCenterShape(corners);
+        setRepeats(corners);
+        setBaseRepeats(corners);
+        manager.setRepeats(corners);
+    };
+
+    const setUseCenterShape = (useCenterShape: boolean) => {
+        setUseCenterShapeState(useCenterShape);
+        if (useCenterShape) {
+            initializeWithCenterShape(shapeCorners);
+        } else {
+            manager.reset(false);
+            setBaseRepeats(null);
+        }
+    };
+
+    const setShapeCorners = (corners: number) => {
+        setShapeCornersState(corners);
+        if (useCenterShape) {
+            initializeWithCenterShape(corners);
+        }
+    };
+
+    // Render state: todo
+
+    useEffect(() => {
+        // Reset on hot reload
+        if (import.meta.hot) {
+            const hot = import.meta.hot;
+            hot.on('vite:beforeUpdate', () => {
+                console.log('Hot update detected, resetting StateContext');
+                handleReset();
+            });
+        }
+
+        // Handle tile manager events:
+        const addRemoveListener = (event: TileManagerEvent) => {
+            const centerOnly =
+                event.currentTiles.length === 1 &&
+                event.currentTiles[0].isCenter;
+            setBaseRepeats(
+                event.newMinRepeats !== Infinity
+                    ? event.newMinRepeats
+                    : centerOnly
+                      ? event.currentTiles[0].corners.length
+                      : null,
+            );
+            setCenterShapeAvailable(
+                event.currentTiles.length === 0 || centerOnly,
+            );
+        };
+        manager.addEventListener('add', addRemoveListener);
+        manager.addEventListener('remove', addRemoveListener);
+        return () => {
+            manager.removeEventListener('add', addRemoveListener);
+            manager.removeEventListener('remove', addRemoveListener);
+        };
+    });
+
+    // Return state provider:
     return (
         <StateContext.Provider
             value={{
@@ -64,8 +132,8 @@ export const StateProvider: React.FC<{
                 setActiveShape,
                 baseRepeats,
                 setBaseRepeats,
-                centerShapeEnabled,
-                setCenterShapeEnabled,
+                centerShapeAvailable,
+                setCenterShapeAvailable,
                 useCenterShape,
                 setUseCenterShape,
                 shapeCorners,
