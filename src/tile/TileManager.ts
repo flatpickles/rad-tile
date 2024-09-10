@@ -283,6 +283,7 @@ export class TileManager {
         this.cancelInput();
         this.progressPoints = [];
         if (setDefaults) {
+            this.setMode(Defaults.mode);
             this.setRepeats(Defaults.repeats);
             this.setShape(Defaults.shape);
         }

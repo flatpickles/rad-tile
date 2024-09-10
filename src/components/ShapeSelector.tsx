@@ -1,19 +1,19 @@
 import { ShapeType } from '../tile/TileTypes';
 
-interface ModeSelectorProps {
+interface ShapeSelectorProps {
     activeShape: ShapeType;
-    handleShapeChange: (mode: ShapeType) => void;
+    setActiveShape: (shape: ShapeType) => void;
 }
 
-const ModeSelector: React.FC<ModeSelectorProps> = ({
+const ShapeSelector: React.FC<ShapeSelectorProps> = ({
     activeShape,
-    handleShapeChange,
+    setActiveShape,
 }) => {
     return (
         <div className="join w-full">
             <button
                 className={`join-item btn btn-sm flex-grow ${activeShape === 'quad' ? 'btn-active' : ''}`}
-                onClick={() => handleShapeChange('quad')}
+                onClick={() => setActiveShape('quad')}
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -30,7 +30,7 @@ const ModeSelector: React.FC<ModeSelectorProps> = ({
             </button>
             <button
                 className={`join-item btn btn-sm flex-grow ${activeShape === 'tri' ? 'btn-active' : ''}`}
-                onClick={() => handleShapeChange('tri')}
+                onClick={() => setActiveShape('tri')}
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -47,7 +47,7 @@ const ModeSelector: React.FC<ModeSelectorProps> = ({
             </button>
             <button
                 className={`join-item btn btn-sm flex-grow ${activeShape === 'free' ? 'btn-active' : ''}`}
-                onClick={() => handleShapeChange('free')}
+                onClick={() => setActiveShape('free')}
             >
                 <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -66,4 +66,4 @@ const ModeSelector: React.FC<ModeSelectorProps> = ({
     );
 };
 
-export default ModeSelector;
+export default ShapeSelector;

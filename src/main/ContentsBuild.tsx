@@ -2,12 +2,10 @@ import React from 'react';
 import CenterShapeSelector from '../components/CenterShapeSelector';
 import RepeatSlider from '../components/RepeatSlider';
 import ShapeSelector from '../components/ShapeSelector';
-import { ShapeType } from '../tile/TileTypes';
 import useStateContext from './StateContext';
 
 const ContentsBuild: React.FC = () => {
     const {
-        manager,
         repeats,
         setRepeats,
         baseRepeats,
@@ -20,25 +18,15 @@ const ContentsBuild: React.FC = () => {
         setShapeCorners,
     } = useStateContext();
 
-    const handleShapeChange = (shape: ShapeType) => {
-        setActiveShape(shape);
-        manager.setShape(shape);
-    };
-
-    const repeatSliderSet = (repeatCount: number) => {
-        setRepeats(repeatCount);
-        manager.setRepeats(repeatCount);
-    };
-
     return (
         <div className="flex flex-col gap-4">
             <ShapeSelector
                 activeShape={activeShape}
-                handleShapeChange={handleShapeChange}
+                setActiveShape={setActiveShape}
             />
             <RepeatSlider
                 repeats={repeats}
-                setRepeats={repeatSliderSet}
+                setRepeats={setRepeats}
                 baseRepeats={baseRepeats}
             />
             <CenterShapeSelector

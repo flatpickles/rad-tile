@@ -42,20 +42,11 @@ export const StateProvider: React.FC<{
         manager.setMode(mode);
     };
 
-    const handleReset = () => {
-        setRepeats(Defaults.repeats);
-        setBaseRepeats(null);
-        setActiveShape(Defaults.shape);
-        setCenterShapeAvailable(true);
-        setUseCenterShapeState(false);
-        setShapeCornersState(3);
-        setActiveModeState(Defaults.mode);
-        manager.reset();
-    };
-
     // Build state:
-    const [repeats, setRepeats] = useState(Defaults.repeats);
-    const [activeShape, setActiveShape] = useState<ShapeType>(Defaults.shape);
+    const [repeats, setRepeatsState] = useState(Defaults.repeats);
+    const [activeShape, setActiveShapeState] = useState<ShapeType>(
+        Defaults.shape,
+    );
     const [baseRepeats, setBaseRepeats] = useState<number | null>(null);
     const [centerShapeAvailable, setCenterShapeAvailable] = useState(true);
     const [useCenterShape, setUseCenterShapeState] = useState(false);
@@ -63,9 +54,19 @@ export const StateProvider: React.FC<{
 
     const initializeWithCenterShape = (corners: number) => {
         manager.initializeWithCenterShape(corners);
-        setRepeats(corners);
+        setRepeatsState(corners);
         setBaseRepeats(corners);
         manager.setRepeats(corners);
+    };
+
+    const setActiveShape = (shape: ShapeType) => {
+        setActiveShapeState(shape);
+        manager.setShape(shape);
+    };
+
+    const setRepeats = (repeats: number) => {
+        setRepeatsState(repeats);
+        manager.setRepeats(repeats);
     };
 
     const setUseCenterShape = (useCenterShape: boolean) => {
@@ -86,6 +87,19 @@ export const StateProvider: React.FC<{
     };
 
     // Render state: todo
+
+    // Other state management:
+
+    const handleReset = () => {
+        setRepeats(Defaults.repeats);
+        setBaseRepeats(null);
+        setActiveShapeState(Defaults.shape);
+        setCenterShapeAvailable(true);
+        setUseCenterShapeState(false);
+        setShapeCornersState(3);
+        setActiveModeState(Defaults.mode);
+        manager.reset();
+    };
 
     useEffect(() => {
         // Reset on hot reload
