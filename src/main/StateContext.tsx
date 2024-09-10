@@ -7,6 +7,8 @@ import {
 } from '../tile/TileTypes';
 import { Defaults } from '../util/Defaults';
 
+// todo: rework this with useReducer
+
 interface StateContextType {
     manager: TileManager;
     repeats: number;
@@ -24,6 +26,14 @@ interface StateContextType {
     activeMode: TileManagerMode;
     setActiveMode: (mode: TileManagerMode) => void;
     handleReset: () => void;
+    strokeColor: string;
+    setStrokeColor: (color: string) => void;
+    backgroundColor: string;
+    setBackgroundColor: (color: string) => void;
+    strokeWidth: number;
+    setStrokeWidth: (width: number) => void;
+    currentColor: string;
+    setCurrentColor: (color: string) => void;
 }
 
 const StateContext = createContext<StateContextType | undefined>(undefined);
@@ -86,7 +96,39 @@ export const StateProvider: React.FC<{
         }
     };
 
-    // Render state: todo
+    // Render state:
+    const [strokeColor, setStrokeColorState] = useState<string>(
+        manager.style.strokeColor,
+    );
+    const [backgroundColor, setBackgroundColorState] = useState<string>(
+        manager.style.backgroundColor,
+    );
+    const [strokeWidth, setStrokeWidthState] = useState(
+        manager.style.strokeWidth,
+    );
+    const [currentColor, setCurrentColorState] = useState<string>(
+        manager.style.currentColor,
+    );
+
+    const setStrokeColor = (color: string) => {
+        setStrokeColorState(color);
+        manager.style.strokeColor = color;
+    };
+
+    const setBackgroundColor = (color: string) => {
+        setBackgroundColorState(color);
+        manager.style.backgroundColor = color;
+    };
+
+    const setStrokeWidth = (width: number) => {
+        setStrokeWidthState(width);
+        manager.style.strokeWidth = width;
+    };
+
+    const setCurrentColor = (color: string) => {
+        setCurrentColorState(color);
+        manager.style.currentColor = color;
+    };
 
     // Other state management:
 
@@ -155,6 +197,14 @@ export const StateProvider: React.FC<{
                 activeMode,
                 setActiveMode,
                 handleReset,
+                strokeColor,
+                setStrokeColor,
+                backgroundColor,
+                setBackgroundColor,
+                strokeWidth,
+                setStrokeWidth,
+                currentColor,
+                setCurrentColor,
             }}
         >
             {children}

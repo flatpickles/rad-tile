@@ -1,56 +1,35 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import ColorPicker from '../components/ColorPicker';
 import SimpleSlider from '../components/SimpleSlider';
 import useStateContext from './StateContext';
 
 const ContentsRender: React.FC = () => {
-    const { manager } = useStateContext();
-
-    const [strokeColor, setStrokeColor] = useState<string>(
-        manager.style.strokeColor,
-    );
-    const [backgroundColor, setBackgroundColor] = useState<string>(
-        manager.style.backgroundColor,
-    );
-    const [strokeWidth, setStrokeWidth] = useState(manager.style.strokeWidth);
-    const [currentColor, setCurrentColor] = useState<string>(
-        manager.style.currentColor,
-    );
-
-    useEffect(() => {
-        manager.style.strokeWidth = strokeWidth;
-    }, [strokeWidth, manager.style]);
-
-    const handleStrokeColorChange = (color: string) => {
-        setStrokeColor(color);
-        manager.style.strokeColor = color;
-    };
-
-    const handleCurrentColorChange = (color: string) => {
-        setCurrentColor(color);
-        manager.style.currentColor = color;
-    };
-
-    const handleBackgroundColorChange = (color: string) => {
-        setBackgroundColor(color);
-        manager.style.backgroundColor = color;
-    };
+    const {
+        currentColor,
+        setCurrentColor,
+        backgroundColor,
+        setBackgroundColor,
+        strokeColor,
+        setStrokeColor,
+        strokeWidth,
+        setStrokeWidth,
+    } = useStateContext();
 
     return (
         <div className="flex flex-col gap-2">
             <ColorPicker
                 color={currentColor}
-                setColor={handleCurrentColorChange}
+                setColor={setCurrentColor}
                 label="Apply Color"
             />
             <ColorPicker
                 color={backgroundColor}
-                setColor={handleBackgroundColorChange}
+                setColor={setBackgroundColor}
                 label="Background Color"
             />
             <ColorPicker
                 color={strokeColor}
-                setColor={handleStrokeColorChange}
+                setColor={setStrokeColor}
                 label="Stroke Color"
             />
             <SimpleSlider
