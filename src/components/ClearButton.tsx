@@ -1,22 +1,20 @@
 import { useState } from 'react';
-
-interface ClearButtonProps {
-    handleClear: () => void;
-}
+import useStateContext from '../main/StateContext';
 
 type ClearConfirmState = {
     confirming: boolean;
     timeout?: number;
 };
 
-const ClearButton: React.FC<ClearButtonProps> = ({ handleClear }) => {
+const ClearButton: React.FC = () => {
+    const { handleReset } = useStateContext();
     const [clearConfirm, setClearConfirm] = useState<ClearConfirmState>({
         confirming: false,
     });
 
     const handleClearPress = () => {
         if (clearConfirm.confirming) {
-            handleClear();
+            handleReset();
             setClearConfirm({ confirming: false });
         } else {
             const confirmTimeout = window.setTimeout(() => {

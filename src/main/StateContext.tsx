@@ -1,6 +1,6 @@
 import { createContext, useContext, useState } from 'react';
 import { TileManager } from '../tile/TileManager';
-import { ShapeType } from '../tile/TileTypes';
+import { ShapeType, TileManagerMode } from '../tile/TileTypes';
 import { Defaults } from '../util/Defaults';
 
 interface StateContextType {
@@ -17,6 +17,9 @@ interface StateContextType {
     setUseCenterShape: (useCenterShape: boolean) => void;
     shapeCorners: number;
     setShapeCorners: (shapeCorners: number) => void;
+    activeMode: TileManagerMode;
+    setActiveMode: (mode: TileManagerMode) => void;
+    handleReset: () => void;
 }
 
 const StateContext = createContext<StateContextType | undefined>(undefined);
@@ -31,6 +34,25 @@ export const StateProvider: React.FC<{
     const [centerShapeEnabled, setCenterShapeEnabled] = useState(true);
     const [useCenterShape, setUseCenterShape] = useState(false);
     const [shapeCorners, setShapeCorners] = useState(3);
+    const [activeMode, setActiveModeState] = useState<TileManagerMode>(
+        Defaults.mode,
+    );
+
+    const setActiveMode = (mode: TileManagerMode) => {
+        setActiveModeState(mode);
+        manager.setMode(mode);
+    };
+
+    const handleReset = () => {
+        setRepeats(Defaults.repeats);
+        setBaseRepeats(null);
+        setActiveShape(Defaults.shape);
+        setCenterShapeEnabled(true);
+        setUseCenterShape(false);
+        setShapeCorners(3);
+        setActiveModeState(Defaults.mode);
+        manager.reset();
+    };
 
     return (
         <StateContext.Provider
@@ -48,6 +70,9 @@ export const StateProvider: React.FC<{
                 setUseCenterShape,
                 shapeCorners,
                 setShapeCorners,
+                activeMode,
+                setActiveMode,
+                handleReset,
             }}
         >
             {children}
