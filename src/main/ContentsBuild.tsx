@@ -2,6 +2,7 @@ import React from 'react';
 import CenterShapeSelector from '../components/CenterShapeSelector';
 import RepeatSlider from '../components/RepeatSlider';
 import ShapeSelector from '../components/ShapeSelector';
+import SimpleSlider from '../components/SimpleSlider';
 import useStateContext from './StateContext';
 
 const ContentsBuild: React.FC = () => {
@@ -16,6 +17,8 @@ const ContentsBuild: React.FC = () => {
         setUseCenterShape,
         shapeCorners,
         setShapeCorners,
+        globalRotation,
+        setGlobalRotation,
     } = useStateContext();
 
     return (
@@ -35,6 +38,13 @@ const ContentsBuild: React.FC = () => {
                 setShapeCorners={setShapeCorners}
                 useCenterShape={useCenterShape}
                 setUseCenterShape={setUseCenterShape}
+            />
+            <SimpleSlider
+                label="Rotation"
+                value={globalRotation}
+                setValue={setGlobalRotation}
+                min={0}
+                max={360}
             />
         </div>
     );

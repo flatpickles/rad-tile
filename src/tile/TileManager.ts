@@ -46,6 +46,7 @@ type RenderConfig = {
 export class TileManager {
     canvas: HTMLCanvasElement | null = null;
     style: TileStyle = Defaults.style;
+    globalRotation: number = 0;
 
     private model: TileModel = new TileModel();
     private zoom: number = 1;
@@ -97,9 +98,17 @@ export class TileManager {
     inputSelect(x: number, y: number) {
         if (!this.canvas) return;
 
+        // Apply global rotation
+        const rotation = -this.globalRotation * (Math.PI / 180);
+        const rotatedPoint = rotatePoint(
+            { x, y },
+            { x: this.canvas.width / 2, y: this.canvas.height / 2 },
+            rotation,
+        );
+
         // Translate the input coordinates to the canvas coordinates, incorporating the zoom level
-        const canvasX = (x - this.canvas.width / 2) / this.zoom;
-        const canvasY = (y - this.canvas.height / 2) / this.zoom;
+        const canvasX = (rotatedPoint.x - this.canvas.width / 2) / this.zoom;
+        const canvasY = (rotatedPoint.y - this.canvas.height / 2) / this.zoom;
 
         // Selecting also sets the hover point
         const [hoverPoint, hoverIsAnchor] = this.#snappedPoint(
@@ -195,9 +204,17 @@ export class TileManager {
     inputMove(x: number, y: number) {
         if (!this.canvas) return;
 
+        // Apply global rotation
+        const rotation = -this.globalRotation * (Math.PI / 180);
+        const rotatedPoint = rotatePoint(
+            { x, y },
+            { x: this.canvas.width / 2, y: this.canvas.height / 2 },
+            rotation,
+        );
+
         // Translate the input coordinates to the canvas coordinates, incorporating the zoom level
-        const canvasX = (x - this.canvas.width / 2) / this.zoom;
-        const canvasY = (y - this.canvas.height / 2) / this.zoom;
+        const canvasX = (rotatedPoint.x - this.canvas.width / 2) / this.zoom;
+        const canvasY = (rotatedPoint.y - this.canvas.height / 2) / this.zoom;
         const [hoverPoint, hoverIsAnchor] = this.#snappedPoint(
             canvasX,
             canvasY,
@@ -282,6 +299,7 @@ export class TileManager {
         this.zoom = 1;
         this.cancelInput();
         this.progressPoints = [];
+        this.globalRotation = 0;
         if (setDefaults) {
             this.setMode(Defaults.mode);
             this.setRepeats(Defaults.repeats);
@@ -508,6 +526,9 @@ export class TileManager {
         context.lineJoin = 'round';
         context.lineCap = 'round';
 
+        // Apply global rotation
+        context.rotate(this.globalRotation * (Math.PI / 180));
+
         // Draw tile repeats first
         const selectedRepeats: Tile[] = [];
         this.model.tiles.forEach((tile) => {
@@ -577,4 +598,20 @@ export class TileManager {
         // Reset translation
         context.restore();
     }
+}
+
+function rotatePoint(point: Point, center: Point, angle: number): Point {
+    const cosRotation = Math.cos(angle);
+    const sinRotation = Math.sin(angle);
+
+    const rotatedX =
+        (point.x - center.x) * cosRotation -
+        (point.y - center.y) * sinRotation +
+        center.x;
+    const rotatedY =
+        (point.x - center.x) * sinRotation +
+        (point.y - center.y) * cosRotation +
+        center.y;
+
+    return { x: rotatedX, y: rotatedY };
 }

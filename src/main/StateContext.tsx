@@ -7,10 +7,11 @@ import {
 } from '../tile/TileTypes';
 import { Defaults } from '../util/Defaults';
 
-// todo: rework this with useReducer
+// todo: rework this with useReducer, perhaps
 
 interface StateContextType {
     manager: TileManager;
+    handleReset: () => void;
     repeats: number;
     setRepeats: (repeats: number) => void;
     activeShape: ShapeType;
@@ -25,7 +26,6 @@ interface StateContextType {
     setShapeCorners: (shapeCorners: number) => void;
     activeMode: TileManagerMode;
     setActiveMode: (mode: TileManagerMode) => void;
-    handleReset: () => void;
     strokeColor: string;
     setStrokeColor: (color: string) => void;
     backgroundColor: string;
@@ -34,6 +34,8 @@ interface StateContextType {
     setStrokeWidth: (width: number) => void;
     currentColor: string;
     setCurrentColor: (color: string) => void;
+    globalRotation: number;
+    setGlobalRotation: (rotation: number) => void;
 }
 
 const StateContext = createContext<StateContextType | undefined>(undefined);
@@ -61,17 +63,23 @@ export const StateProvider: React.FC<{
     const [centerShapeAvailable, setCenterShapeAvailable] = useState(true);
     const [useCenterShape, setUseCenterShapeState] = useState(false);
     const [shapeCorners, setShapeCornersState] = useState(3);
+    const [globalRotation, setGlobalRotationState] = useState(0);
 
     const initializeWithCenterShape = (corners: number) => {
-        manager.initializeWithCenterShape(corners);
         setRepeatsState(corners);
         setBaseRepeats(corners);
+        manager.initializeWithCenterShape(corners);
         manager.setRepeats(corners);
     };
 
     const setActiveShape = (shape: ShapeType) => {
         setActiveShapeState(shape);
         manager.setShape(shape);
+    };
+
+    const setGlobalRotation = (rotation: number) => {
+        setGlobalRotationState(rotation);
+        manager.globalRotation = rotation;
     };
 
     const setRepeats = (repeats: number) => {
@@ -140,6 +148,7 @@ export const StateProvider: React.FC<{
         setUseCenterShapeState(false);
         setShapeCornersState(3);
         setActiveModeState(Defaults.mode);
+        setGlobalRotationState(0);
         manager.reset();
     };
 
@@ -182,6 +191,7 @@ export const StateProvider: React.FC<{
         <StateContext.Provider
             value={{
                 manager,
+                handleReset,
                 repeats,
                 setRepeats,
                 activeShape,
@@ -196,7 +206,6 @@ export const StateProvider: React.FC<{
                 setShapeCorners,
                 activeMode,
                 setActiveMode,
-                handleReset,
                 strokeColor,
                 setStrokeColor,
                 backgroundColor,
@@ -205,6 +214,8 @@ export const StateProvider: React.FC<{
                 setStrokeWidth,
                 currentColor,
                 setCurrentColor,
+                globalRotation,
+                setGlobalRotation,
             }}
         >
             {children}

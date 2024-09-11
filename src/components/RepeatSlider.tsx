@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Defaults } from '../util/Defaults';
 
 interface RepeatSliderProps {
@@ -13,7 +13,10 @@ const RepeatSlider: React.FC<RepeatSliderProps> = ({
     baseRepeats,
 }) => {
     const [sliderValue, setSliderValue] = useState(repeats);
-    if (!baseRepeats && sliderValue !== repeats) setSliderValue(repeats);
+
+    useEffect(() => {
+        if (!baseRepeats && sliderValue !== repeats) setSliderValue(repeats);
+    }, [baseRepeats, repeats, sliderValue]);
 
     const repeatSliderVals = baseRepeats
         ? getFactors(baseRepeats)
