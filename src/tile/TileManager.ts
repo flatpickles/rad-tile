@@ -1,13 +1,7 @@
-import Color from 'color';
 import { Defaults } from '../util/Defaults';
 import { Point } from '../util/Geometry';
-import {
-    AnchorPoint,
-    newAnchor,
-    Tile,
-    TileModel,
-    tileRotationPoints,
-} from './TileModel';
+import { AnchorPoint, newAnchor, TileModel } from './TileModel';
+import TileRenderer from './TileRenderer';
 import {
     ShapeType,
     TileManagerEvent,
@@ -16,49 +10,28 @@ import {
     TileStyle,
 } from './TileTypes';
 
-// Zoom constants
 const ZOOM_FACTOR = 0.005;
 const ZOOM_MIN = 0.1;
 const ZOOM_MAX = 10;
-
-// Scale constants
-const HANDLE_SIZE = 14;
-const BUILD_STROKE_WIDTH = 7;
-const BUILD_STROKE_BACKDROP_WIDTH = 3;
-const HANDLE_STROKE_WIDTH = 5;
 const SNAP_DISTANCE = 40;
-
-// Color constants for build mode
-const COLOR_DISABLED = 'rgba(128, 128, 128, 1.0)';
-const ANCHOR_COLOR_LIGHT = 'rgba(0, 256, 0, 1.0)';
-const ANCHOR_COLOR_DARK = 'rgba(0, 170, 0, 1.0)';
-const ANCHOR_COLOR_DELETE = 'rgba(256, 0, 0, 1.0)';
-const ACTIVE_STROKE_COLOR_DARK = '#222222';
-const ACTIVE_STROKE_COLOR_LIGHT = '#DDDDDD';
-
-type RenderConfig = {
-    fillColor: string;
-    strokeColor: string;
-    lineWidth: number;
-    shouldStroke: boolean;
-};
 
 export class TileManager {
     canvas: HTMLCanvasElement | null = null;
+    renderer = new TileRenderer(this);
     style: TileStyle = Defaults.style;
     globalRotation: number = 0;
 
-    private model: TileModel = new TileModel();
-    private zoom: number = 1;
-    private progressPoints: AnchorPoint[] = [];
-    private hoverPoint: AnchorPoint | null = null;
-    private hoveredTileId: string | null = null;
-    private selectedTileId: string | null = null;
-    private canCommit: boolean = true;
+    model: TileModel = new TileModel();
+    zoom: number = 1;
+    progressPoints: AnchorPoint[] = [];
+    hoverPoint: AnchorPoint | null = null;
+    hoveredTileId: string | null = null;
+    selectedTileId: string | null = null;
+    canCommit: boolean = true;
 
-    private mode: TileManagerMode = Defaults.mode;
-    private repeats: number = Defaults.repeats;
-    private shapeType: ShapeType = Defaults.shape;
+    mode: TileManagerMode = Defaults.mode;
+    repeats: number = Defaults.repeats;
+    shapeType: ShapeType = Defaults.shape;
 
     // Event listeners
 
@@ -342,261 +315,8 @@ export class TileManager {
         return [nearest ?? newAnchor({ x, y }, this.repeats), nearest !== null];
     }
 
-    // Rendering
-
-    renderHandle(context: CanvasRenderingContext2D, point: AnchorPoint) {
-        const renderConfig = this.#getHandleRenderConfig(point);
-        if (!renderConfig) return;
-
-        // Draw the handle
-        const scaledHandleSize = HANDLE_SIZE / this.zoom; // constant across zoom levels
-        context.beginPath();
-        context.arc(point.x, point.y, scaledHandleSize, 0, 2 * Math.PI);
-        context.fillStyle = renderConfig.fillColor;
-        context.strokeStyle = renderConfig.strokeColor;
-        context.fill();
-        context.lineWidth = renderConfig.lineWidth;
-        context.stroke();
-    }
-
-    #getHandleRenderConfig(point: AnchorPoint): RenderConfig | null {
-        // Don't render handles that are not along the selected tile
-        const hasSelectedTile = this.selectedTileId !== null;
-        const alongSelectedTile =
-            this.selectedTileId !== null &&
-            point.tileIds.includes(this.selectedTileId);
-        if (hasSelectedTile && !alongSelectedTile) return null;
-
-        // Get handle status for rendering
-        const alongProgressTile =
-            this.progressPoints.includes(point) ||
-            (this.hoverPoint?.x === point.x && this.hoverPoint?.y === point.y);
-        const isDisabled = alongProgressTile && !this.canCommit;
-        const isHovered =
-            point.x === this.hoverPoint?.x && point.y === this.hoverPoint?.y;
-        const alongHoveredTile =
-            this.hoveredTileId !== null &&
-            point.tileIds.includes(this.hoveredTileId);
-
-        // Get fill & stroke colors
-        const passiveAnchorColor = ANCHOR_COLOR_DARK;
-        const activeAnchorColor = ANCHOR_COLOR_LIGHT;
-        let fillColor: string;
-        if (hasSelectedTile && alongSelectedTile) {
-            fillColor = ANCHOR_COLOR_DELETE;
-        } else if (alongHoveredTile) {
-            fillColor = activeAnchorColor;
-        } else {
-            fillColor = isDisabled
-                ? COLOR_DISABLED
-                : isHovered
-                  ? activeAnchorColor
-                  : passiveAnchorColor;
-        }
-        const activeStrokeColor = Color(this.style.backgroundColor).isDark()
-            ? ACTIVE_STROKE_COLOR_LIGHT
-            : ACTIVE_STROKE_COLOR_DARK;
-
-        return {
-            fillColor,
-            strokeColor: activeStrokeColor,
-            lineWidth: HANDLE_STROKE_WIDTH / this.zoom,
-            shouldStroke: true,
-        };
-    }
-
-    renderTile(
-        context: CanvasRenderingContext2D,
-        tile: Tile,
-        rotationsOnly = false,
-    ) {
-        const renderConfig = this.#getTileRenderConfig(tile, rotationsOnly);
-        context.fillStyle = renderConfig.fillColor;
-        context.strokeStyle = renderConfig.strokeColor;
-        context.lineWidth = renderConfig.lineWidth;
-
-        const points = rotationsOnly
-            ? tileRotationPoints(tile)
-            : [tile.corners];
-        points.forEach((pointSet) => {
-            this.#drawShape(context, pointSet);
-            context.fill();
-            if (renderConfig.shouldStroke) context.stroke();
-        });
-    }
-
-    #getTileRenderConfig(tile: Tile, rotationsOnly: boolean): RenderConfig {
-        const buildMode = this.mode === 'build';
-        const shouldStroke = buildMode || this.style.strokeWidth > 0;
-        const hasSelection = this.selectedTileId !== null;
-        const isSelected = tile.id === this.selectedTileId;
-        let lineWidth = this.style.strokeWidth;
-        if (buildMode) {
-            const isBuildBackdrop =
-                (hasSelection && !isSelected) || rotationsOnly;
-            lineWidth =
-                (isBuildBackdrop
-                    ? BUILD_STROKE_BACKDROP_WIDTH
-                    : BUILD_STROKE_WIDTH) / this.zoom;
-        }
-
-        return {
-            fillColor: this.#getTileFillColor(tile, rotationsOnly),
-            strokeColor: this.#getTileStrokeColor(tile, rotationsOnly),
-            lineWidth,
-            shouldStroke,
-        };
-    }
-
-    #getTileFillColor(tile: Tile, rotationsOnly: boolean): string {
-        const isBuildMode = this.mode === 'build';
-        const isHovered = tile.id === this.hoveredTileId;
-        const isDisabled =
-            tile.id === this.model.progressTile?.id && !this.canCommit;
-        const hasSelection = this.selectedTileId !== null;
-        const isSelected = tile.id === this.selectedTileId;
-
-        if (isBuildMode) {
-            if (isDisabled) return COLOR_DISABLED;
-            if (rotationsOnly || (hasSelection && !isSelected))
-                return this.#lowlightColor(tile.color);
-            if (isHovered) return this.#highlightColor(tile.color);
-        } else if (isHovered) {
-            return this.style.currentColor;
-        }
-        return tile.color;
-    }
-
-    #highlightColor(baseColor: string): string {
-        return (
-            Color(this.style.backgroundColor).isLight()
-                ? Color(baseColor).lighten(0.5).toString()
-                : Color(baseColor).darken(0.2).toString()
-        ).toString();
-    }
-
-    #lowlightColor(baseColor: string): string {
-        return Color(baseColor).alpha(0.5).toString();
-    }
-
-    #getTileStrokeColor(tile: Tile, rotationsOnly: boolean): string {
-        const isBuildMode = this.mode === 'build';
-        const hasSelection = this.selectedTileId !== null;
-        const isSelected = tile.id === this.selectedTileId;
-
-        if (isBuildMode) {
-            const activeStrokeColor = Color(this.style.backgroundColor).isDark()
-                ? ACTIVE_STROKE_COLOR_LIGHT
-                : ACTIVE_STROKE_COLOR_DARK;
-            if (rotationsOnly) return this.style.backgroundColor;
-            if (hasSelection)
-                return isSelected
-                    ? activeStrokeColor
-                    : this.style.backgroundColor;
-            return activeStrokeColor;
-        } else {
-            return this.style.strokeColor;
-        }
-    }
-
-    #drawShape(context: CanvasRenderingContext2D, points: Point[]) {
-        context.beginPath();
-        context.moveTo(points[0].x, points[0].y);
-        for (let i = 1; i < points.length; i++) {
-            context.lineTo(points[i].x, points[i].y);
-        }
-        context.closePath();
-    }
-
     render() {
-        // Get the context
-        if (!this.canvas) return;
-        const context = this.canvas.getContext('2d');
-        if (!context) {
-            throw new Error('No context');
-        }
-
-        // Clear, setup, and translate the canvas
-        context.fillStyle = this.style.backgroundColor;
-        context.fillRect(0, 0, this.canvas.width, this.canvas.height);
-        context.save();
-        context.translate(this.canvas.width / 2, this.canvas.height / 2);
-        context.scale(this.zoom, this.zoom);
-        context.lineWidth = BUILD_STROKE_WIDTH / this.zoom;
-        context.lineJoin = 'round';
-        context.lineCap = 'round';
-
-        // Apply global rotation
-        context.rotate(this.globalRotation * (Math.PI / 180));
-
-        // Draw tile repeats first
-        const selectedRepeats: Tile[] = [];
-        this.model.tiles.forEach((tile) => {
-            if (tile.id === this.selectedTileId) {
-                selectedRepeats.push(tile);
-            } else {
-                this.renderTile(context, tile, true);
-            }
-        });
-        if (this.model.progressTile) {
-            this.renderTile(context, this.model.progressTile, true);
-        }
-        selectedRepeats.forEach((tile) => {
-            this.renderTile(context, tile, true);
-        });
-
-        // Now draw the active area
-        let selectedTile: Tile | null = null;
-        this.model.tiles.forEach((tile) => {
-            if (tile.id === this.selectedTileId) {
-                selectedTile = tile;
-            } else {
-                this.renderTile(context, tile);
-            }
-        });
-        if (this.model.progressTile) {
-            this.renderTile(context, this.model.progressTile);
-        }
-        if (selectedTile) {
-            this.renderTile(context, selectedTile);
-        }
-
-        if (this.mode === 'build') {
-            // Draw the progress OR the available anchors
-            if (this.progressPoints.length > 0 && this.hoverPoint) {
-                // Draw path to hover point if there is no progress tile
-                const activeStrokeColor = Color(
-                    this.style.backgroundColor,
-                ).isDark()
-                    ? ACTIVE_STROKE_COLOR_LIGHT
-                    : ACTIVE_STROKE_COLOR_DARK;
-                context.strokeStyle = activeStrokeColor;
-                if (!this.model.progressTile) {
-                    context.beginPath();
-                    context.moveTo(
-                        this.progressPoints[0].x,
-                        this.progressPoints[0].y,
-                    );
-                    context.lineTo(this.hoverPoint.x, this.hoverPoint.y);
-                    context.lineWidth = BUILD_STROKE_WIDTH / this.zoom;
-                    context.stroke();
-                }
-                // Draw progress points
-                this.progressPoints.forEach((point) => {
-                    this.renderHandle(context, point);
-                });
-                // Draw hover point
-                this.renderHandle(context, this.hoverPoint);
-            } else {
-                // Draw anchors
-                this.model.anchors.forEach((anchor) => {
-                    this.renderHandle(context, anchor);
-                });
-            }
-        }
-
-        // Reset translation
-        context.restore();
+        this.renderer.render();
     }
 }
 
