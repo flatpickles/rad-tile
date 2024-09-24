@@ -376,4 +376,16 @@ export class TileModel {
         this.progressTile = null;
         this.minRepeats = Infinity;
     }
+
+    getViewBox(): [number, number, number, number] {
+        const allPoints: Point[] = [
+            ...this.tiles.map((tile) => tile.corners),
+            ...this.tiles.flatMap((tile) => tileRotationPoints(tile)),
+        ].flat();
+        const minX = Math.min(...allPoints.map((point) => point.x));
+        const minY = Math.min(...allPoints.map((point) => point.y));
+        const maxX = Math.max(...allPoints.map((point) => point.x));
+        const maxY = Math.max(...allPoints.map((point) => point.y));
+        return [minX, minY, maxX, maxY];
+    }
 }

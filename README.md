@@ -4,13 +4,14 @@ This is a lightweight tool for easily making radial tile patterns, like the [San
 
 ## short todo:
 
--   cursor over canvas
--   improve TileRenderer (factor out direct manager dependency, perhaps)
 -   favicon
+-   reset everything on clear (bg color, tile inset, UIs etc)
+-   viewboxing for PNG export
+-   move center point away from panel (more usable space)
+-   always default bg color in build?
 
 ## medium todo:
 
--   svg & png export
 -   paint with an image: tiles mask in an image
 -   paint palette: build a group of colors/images for tile color assignment, switch between them
 -   persistence for config + composition (local storage)
@@ -43,6 +44,7 @@ This is a lightweight tool for easily making radial tile patterns, like the [San
 
 ## ideas / someday
 
+-   different cursor (pointer vs. default) based on hover state
 -   hotkeys:
     -   repeat count
     -   equilateral

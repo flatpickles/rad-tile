@@ -1,5 +1,6 @@
 import Color from 'color';
 import offsetPolygon from 'offset-polygon';
+import { Defaults } from '../util/Defaults';
 import { Point } from '../util/Geometry';
 import { TileManager } from './TileManager';
 import { AnchorPoint, Tile, tileRotationPoints } from './TileModel';
@@ -17,6 +18,10 @@ const ANCHOR_COLOR_DARK = 'rgba(0, 170, 0, 1.0)';
 const ANCHOR_COLOR_DELETE = 'rgba(256, 0, 0, 1.0)';
 const ACTIVE_STROKE_COLOR_DARK = '#222222';
 const ACTIVE_STROKE_COLOR_LIGHT = '#DDDDDD';
+
+// SVG export props
+const SVG_STROKE_PROPS = 'stroke-linecap="round" stroke-linejoin="round"';
+const SVG_VIEWBOX_PADDING = 50;
 
 type RenderConfig = {
     fillColor: string;
@@ -105,7 +110,7 @@ export default class TileRenderer {
         context: CanvasRenderingContext2D,
         tile: Tile,
         rotationsOnly = false,
-    ) {
+    ): string[] {
         // Get the render config
         const renderConfig = this.#getTileRenderConfig(tile, rotationsOnly);
         context.fillStyle = renderConfig.fillColor;
@@ -116,15 +121,22 @@ export default class TileRenderer {
         const tileInset =
             this.manager.mode === 'render' ? this.manager.style.tileInset : 0;
 
-        // Draw the tile
+        // Draw the tile and collect the SVG parts
+        const svgParts: string[] = [];
         const points = rotationsOnly
             ? tileRotationPoints(tile)
             : [tile.corners];
         points.forEach((pointSet) => {
-            this.#drawShape(context, pointSet, tileInset);
+            const svgPoints = this.#drawShape(context, pointSet, tileInset);
+            svgParts.push(
+                `<polygon points="${svgPoints}" fill="${tile.color}" stroke="${renderConfig.strokeColor}" stroke-width="${renderConfig.lineWidth}" ${SVG_STROKE_PROPS} />`,
+            );
             context.fill();
             if (renderConfig.shouldStroke) context.stroke();
         });
+
+        // Return the SVG parts
+        return svgParts;
     }
 
     #getTileRenderConfig(tile: Tile, rotationsOnly: boolean): RenderConfig {
@@ -204,7 +216,11 @@ export default class TileRenderer {
         }
     }
 
-    #drawShape(context: CanvasRenderingContext2D, points: Point[], inset = 0) {
+    #drawShape(
+        context: CanvasRenderingContext2D,
+        points: Point[],
+        inset = 0,
+    ): string {
         // Inset the points if specified (todo: don't recalculate for each frame)
         points = inset === 0 ? points : offsetPolygon(points, -inset);
 
@@ -215,15 +231,18 @@ export default class TileRenderer {
             context.lineTo(points[i].x, points[i].y);
         }
         context.closePath();
+
+        // Return the SVG points
+        return points.map((point) => `${point.x},${point.y}`).join(' ');
     }
 
-    render() {
+    render(): string[] | null {
+        const svgParts: string[] = [];
+
         // Get the context
-        if (!this.manager.canvas) return;
+        if (!this.manager.canvas) return null;
         const context = this.manager.canvas.getContext('2d');
-        if (!context) {
-            throw new Error('No context');
-        }
+        if (!context) return null;
 
         // Clear, setup, and translate the canvas
         context.fillStyle = this.manager.style.backgroundColor;
@@ -252,14 +271,20 @@ export default class TileRenderer {
             if (tile.id === this.manager.selectedTileId) {
                 selectedRepeats.push(tile);
             } else {
-                this.renderTile(context, tile, true);
+                svgParts.push(...this.renderTile(context, tile, true));
             }
         });
         if (this.manager.model.progressTile) {
-            this.renderTile(context, this.manager.model.progressTile, true);
+            svgParts.push(
+                ...this.renderTile(
+                    context,
+                    this.manager.model.progressTile,
+                    true,
+                ),
+            );
         }
         selectedRepeats.forEach((tile) => {
-            this.renderTile(context, tile, true);
+            svgParts.push(...this.renderTile(context, tile, true));
         });
 
         // Now draw the active area
@@ -268,14 +293,16 @@ export default class TileRenderer {
             if (tile.id === this.manager.selectedTileId) {
                 selectedTile = tile;
             } else {
-                this.renderTile(context, tile);
+                svgParts.push(...this.renderTile(context, tile));
             }
         });
         if (this.manager.model.progressTile) {
-            this.renderTile(context, this.manager.model.progressTile);
+            svgParts.push(
+                ...this.renderTile(context, this.manager.model.progressTile),
+            );
         }
         if (selectedTile) {
-            this.renderTile(context, selectedTile);
+            svgParts.push(...this.renderTile(context, selectedTile));
         }
 
         if (this.manager.mode === 'build') {
@@ -320,5 +347,64 @@ export default class TileRenderer {
 
         // Reset translation
         context.restore();
+
+        // Return the SVG parts
+        return svgParts;
+    }
+
+    exportPNG(name: string) {
+        // Get the context
+        if (!this.manager.canvas) return;
+
+        // Convert the canvas to a PNG
+        const png = this.manager.canvas.toDataURL('image/png');
+
+        // Download the PNG
+        const a = document.createElement('a');
+        a.href = png;
+        a.download = name + '.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    exportSVG(name: string) {
+        // Create the viewBox string
+        const shapeBounds = this.manager.model.getViewBox();
+        const viewBoxAttrs = [
+            shapeBounds[0] - SVG_VIEWBOX_PADDING,
+            shapeBounds[1] - SVG_VIEWBOX_PADDING,
+            shapeBounds[2] - shapeBounds[0] + 2 * SVG_VIEWBOX_PADDING,
+            shapeBounds[3] - shapeBounds[1] + 2 * SVG_VIEWBOX_PADDING,
+        ];
+        const viewBoxString = viewBoxAttrs.join(' ');
+
+        // Create the SVG elements
+        const svgParts: string[] = this.render() || [];
+        const svgHeader = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${viewBoxString}">`;
+        const svgFooter = `</svg>`;
+
+        // Add background rect if bg color isn't the default
+        if (
+            this.manager.style.backgroundColor !==
+            Defaults.style.backgroundColor
+        ) {
+            const backgroundColor = this.manager.style.backgroundColor;
+            svgParts.unshift(
+                `<rect x="${viewBoxAttrs[0]}" y="${viewBoxAttrs[1]}" width="${viewBoxAttrs[2]}" height="${viewBoxAttrs[3]}" fill="${backgroundColor}" />`,
+            );
+        }
+
+        // Combine the SVG elements
+        const svgString = svgHeader + svgParts.join('') + svgFooter;
+        const blob = new Blob([svgString], { type: 'image/svg+xml' });
+
+        // Download the SVG
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = name + '.svg';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
     }
 }

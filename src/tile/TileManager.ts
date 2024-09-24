@@ -18,7 +18,7 @@ const SNAP_DISTANCE = 40;
 export class TileManager {
     canvas: HTMLCanvasElement | null = null;
     renderer = new TileRenderer(this);
-    style: TileStyle = Defaults.style;
+    style: TileStyle = { ...Defaults.style };
     globalRotation: number = 0;
 
     model: TileModel = new TileModel();
@@ -317,6 +317,16 @@ export class TileManager {
 
     render() {
         this.renderer.render();
+    }
+
+    exportPNG() {
+        const name = `rad-tile_${Date.now()}`;
+        this.renderer.exportPNG(name);
+    }
+
+    exportSVG() {
+        const name = `rad-tile_${Date.now()}`;
+        this.renderer.exportSVG(name);
     }
 }
 

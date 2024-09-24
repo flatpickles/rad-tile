@@ -1,10 +1,12 @@
 import React from 'react';
 import ColorPicker from '../components/ColorPicker';
+import ExportControls from '../components/ExportControls';
 import SimpleSlider from '../components/SimpleSlider';
 import useStateContext from './StateContext';
 
 const ContentsRender: React.FC = () => {
     const {
+        manager,
         currentColor,
         setCurrentColor,
         backgroundColor,
@@ -49,6 +51,10 @@ const ContentsRender: React.FC = () => {
                 max={20}
                 step={1}
                 label="Tile Inset"
+            />
+            <ExportControls
+                exportSVG={() => manager.exportSVG()}
+                exportPNG={() => manager.exportPNG()}
             />
         </div>
     );
