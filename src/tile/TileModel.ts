@@ -6,6 +6,7 @@ import {
     isPointInShape,
     Point,
     polygonArea,
+    polygonWindingClockwise,
     rotatePoint,
     rotatePoints,
 } from '../util/Geometry';
@@ -347,6 +348,12 @@ export class TileModel {
         }
         const newTile = this.progressTile;
         this.progressTile = null;
+
+        // Ensure tiles are committed with counter-clockwise winding order
+        const windingClockwise = polygonWindingClockwise(newTile.corners);
+        if (windingClockwise) {
+            newTile.corners.reverse();
+        }
 
         // Add the new tile, and corners as anchors
         newTile.corners.forEach((corner) => {

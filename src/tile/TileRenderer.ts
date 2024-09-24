@@ -205,7 +205,7 @@ export default class TileRenderer {
     }
 
     #drawShape(context: CanvasRenderingContext2D, points: Point[], inset = 0) {
-        // Inset the points if specified
+        // Inset the points if specified (todo: don't recalculate for each frame)
         points = inset === 0 ? points : offsetPolygon(points, -inset);
 
         // Draw the shape

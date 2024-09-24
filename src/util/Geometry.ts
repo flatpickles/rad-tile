@@ -14,6 +14,11 @@ export function rotatePoints(points: Point[], angle: number): Point[] {
     return points.map((point) => rotatePoint(point, angle));
 }
 
+export function polygonWindingClockwise(polygon: Point[]): boolean {
+    const polygonArray = polygon.map((point) => [point.x, point.y]);
+    return polygonArea(polygonArray) < 0;
+}
+
 // Generated code from here on down...
 
 export function polygonArea(polygon: number[][]): number {
