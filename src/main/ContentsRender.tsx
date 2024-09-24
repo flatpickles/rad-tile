@@ -13,6 +13,8 @@ const ContentsRender: React.FC = () => {
         setStrokeColor,
         strokeWidth,
         setStrokeWidth,
+        tileInset,
+        setTileInset,
     } = useStateContext();
 
     return (
@@ -39,6 +41,14 @@ const ContentsRender: React.FC = () => {
                 max={20}
                 step={1}
                 label="Stroke Width"
+            />
+            <SimpleSlider
+                value={tileInset}
+                setValue={setTileInset}
+                min={0}
+                max={20}
+                step={1}
+                label="Tile Inset"
             />
         </div>
     );

@@ -36,6 +36,8 @@ interface StateContextType {
     setCurrentColor: (color: string) => void;
     globalRotation: number;
     setGlobalRotation: (rotation: number) => void;
+    tileInset: number;
+    setTileInset: (inset: number) => void;
 }
 
 const StateContext = createContext<StateContextType | undefined>(undefined);
@@ -117,6 +119,7 @@ export const StateProvider: React.FC<{
     const [currentColor, setCurrentColorState] = useState<string>(
         manager.style.currentColor,
     );
+    const [tileInset, setTileInsetState] = useState(manager.style.tileInset);
 
     const setStrokeColor = (color: string) => {
         setStrokeColorState(color);
@@ -136,6 +139,11 @@ export const StateProvider: React.FC<{
     const setCurrentColor = (color: string) => {
         setCurrentColorState(color);
         manager.style.currentColor = color;
+    };
+
+    const setTileInset = (inset: number) => {
+        setTileInsetState(inset);
+        manager.style.tileInset = inset;
     };
 
     // Other state management:
@@ -216,6 +224,8 @@ export const StateProvider: React.FC<{
                 setCurrentColor,
                 globalRotation,
                 setGlobalRotation,
+                tileInset,
+                setTileInset,
             }}
         >
             {children}

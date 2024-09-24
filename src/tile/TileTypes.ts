@@ -15,4 +15,5 @@ export type TileStyle = {
     strokeColor: string;
     strokeWidth: number;
     currentColor: string;
+    tileInset: number;
 };

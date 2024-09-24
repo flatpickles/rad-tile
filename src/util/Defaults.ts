@@ -18,5 +18,6 @@ export const Defaults: {
         strokeColor: '#000000',
         strokeWidth: 7,
         currentColor: '#facade',
+        tileInset: 0,
     },
 };

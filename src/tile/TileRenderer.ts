@@ -1,4 +1,5 @@
 import Color from 'color';
+import offsetPolygon from 'offset-polygon';
 import { Point } from '../util/Geometry';
 import { TileManager } from './TileManager';
 import { AnchorPoint, Tile, tileRotationPoints } from './TileModel';
@@ -105,16 +106,22 @@ export default class TileRenderer {
         tile: Tile,
         rotationsOnly = false,
     ) {
+        // Get the render config
         const renderConfig = this.#getTileRenderConfig(tile, rotationsOnly);
         context.fillStyle = renderConfig.fillColor;
         context.strokeStyle = renderConfig.strokeColor;
         context.lineWidth = renderConfig.lineWidth;
 
+        // Apply tile inset in render mode only
+        const tileInset =
+            this.manager.mode === 'render' ? this.manager.style.tileInset : 0;
+
+        // Draw the tile
         const points = rotationsOnly
             ? tileRotationPoints(tile)
             : [tile.corners];
         points.forEach((pointSet) => {
-            this.#drawShape(context, pointSet);
+            this.#drawShape(context, pointSet, tileInset);
             context.fill();
             if (renderConfig.shouldStroke) context.stroke();
         });
@@ -197,7 +204,11 @@ export default class TileRenderer {
         }
     }
 
-    #drawShape(context: CanvasRenderingContext2D, points: Point[]) {
+    #drawShape(context: CanvasRenderingContext2D, points: Point[], inset = 0) {
+        // Inset the points if specified
+        points = inset === 0 ? points : offsetPolygon(points, -inset);
+
+        // Draw the shape
         context.beginPath();
         context.moveTo(points[0].x, points[0].y);
         for (let i = 1; i < points.length; i++) {
