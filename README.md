@@ -4,7 +4,6 @@ This is a lightweight tool for easily making radial tile patterns, like the [San
 
 ## short todo:
 
--   favicon
 -   reset everything on clear (bg color, tile inset, UIs etc)
 -   viewboxing for PNG export
 -   move center point away from panel (more usable space)
