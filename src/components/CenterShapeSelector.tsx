@@ -28,7 +28,8 @@ const CenterShapeSelector: React.FC<CenterShapeSelectorProps> = ({
                             !enabled ? 'btn-secondary opacity-50' : ''
                         }`}
                     >
-                        Center Corners: {shapeCorners}
+                        <span className="font-bold">Center Corners:</span>{' '}
+                        {shapeCorners}
                     </span>
                     <input
                         type="checkbox"

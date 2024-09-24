@@ -31,7 +31,7 @@ const SimpleSlider: React.FC<SimpleSliderProps> = ({
                             disabled ? 'btn-secondary opacity-50' : ''
                         }`}
                     >
-                        {label}: {value}
+                        <span className="font-bold">{label}:</span> {value}
                     </p>
                 </div>
             )}

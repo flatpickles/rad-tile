@@ -12,12 +12,14 @@ const Overlay: React.FC = () => {
     return (
         <div className="absolute shadow-sm p-4 rounded-lg bg-base-100 border bg-opacity-90 backdrop-blur-lg flex flex-col gap-2 inset-4 top-auto max-h-[calc(50vh-4rem)] sm:top-8 sm:left-auto sm:right-8 sm:bottom-auto sm:w-72 sm:max-h-[calc(100vh-4rem)] overflow-y-auto">
             <OverlayHeader />
-            <div className="flex flex-row gap-2 w-full">
-                <ModeSelector />
-                <ClearButton />
+            <div className="flex flex-col gap-3">
+                <div className="flex flex-row gap-2 w-full">
+                    <ModeSelector />
+                    <ClearButton />
+                </div>
+                {activeMode === 'build' && <ContentsBuild />}
+                {activeMode === 'render' && <ContentsRender />}
             </div>
-            {activeMode === 'build' && <ContentsBuild />}
-            {activeMode === 'render' && <ContentsRender />}
         </div>
     );
 };

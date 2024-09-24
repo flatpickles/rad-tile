@@ -31,7 +31,7 @@ const ClearButton: React.FC = () => {
 
     return (
         <button
-            className={`btn btn-sm ${clearConfirm.confirming ? 'btn-error' : ''}`}
+            className={`btn btn-sm text-btn ${clearConfirm.confirming ? 'btn-error' : ''}`}
             onClick={handleClearPress}
             onMouseOut={() => {
                 clearTimeout(clearConfirm.timeout);

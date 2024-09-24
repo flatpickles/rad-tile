@@ -3,18 +3,21 @@
 @tailwind utilities;
 
 :root {
-    font-family: system-ui, Arial, sans-serif;
-    line-height: 1.5;
+    font-family: 'Courier New', monospace;
     font-weight: 400;
+    line-height: 1.25;
 }
 
 .header-title {
     @apply text-3xl font-bold;
-    font-family: 'Courier New', monospace;
 }
 
 .btn {
     @apply no-animation;
+}
+
+.text-btn {
+    padding-top: 0.1rem;
 }
 
 .input:focus {

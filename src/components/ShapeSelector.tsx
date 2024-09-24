@@ -12,7 +12,7 @@ const ShapeSelector: React.FC<ShapeSelectorProps> = ({
     return (
         <div className="join w-full">
             <button
-                className={`join-item btn btn-sm flex-grow ${activeShape === 'quad' ? 'btn-active' : ''}`}
+                className={`join-item btn btn-sm flex-grow text-btn ${activeShape === 'quad' ? 'btn-active' : ''}`}
                 onClick={() => setActiveShape('quad')}
             >
                 <svg

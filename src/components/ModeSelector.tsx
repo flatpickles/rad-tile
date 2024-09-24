@@ -6,13 +6,13 @@ const ModeSelector: React.FC = () => {
     return (
         <div className="join w-full">
             <button
-                className={`join-item btn btn-sm flex-grow ${activeMode === 'build' ? 'btn-active' : ''}`}
+                className={`join-item btn btn-sm flex-grow text-btn ${activeMode === 'build' ? 'btn-active' : ''}`}
                 onClick={() => setActiveMode('build')}
             >
                 Build
             </button>
             <button
-                className={`join-item btn btn-sm flex-grow ${activeMode === 'render' ? 'btn-active' : ''}`}
+                className={`join-item btn btn-sm flex-grow text-btn ${activeMode === 'render' ? 'btn-active' : ''}`}
                 onClick={() => setActiveMode('render')}
             >
                 Render

@@ -17,9 +17,9 @@ const ColorPicker: React.FC<ColorPickerProps> = ({
     };
 
     return (
-        <div className="form-control">
+        <div className="flex flex-col gap-1">
             {label && (
-                <div className="flex justify-between">
+                <div className="flex justify-between font-bold">
                     <p>{label}:</p>
                 </div>
             )}
@@ -29,7 +29,7 @@ const ColorPicker: React.FC<ColorPickerProps> = ({
                     type="text"
                     value={color}
                     onChange={handleColorChange}
-                    className="input input-bordered join-item h-full"
+                    className="input input-bordered join-item h-full w-full"
                 />
                 <div className="color-picker-wrapper">
                     <input

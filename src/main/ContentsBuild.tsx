@@ -22,7 +22,7 @@ const ContentsBuild: React.FC = () => {
     } = useStateContext();
 
     return (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
             <ShapeSelector
                 activeShape={activeShape}
                 setActiveShape={setActiveShape}

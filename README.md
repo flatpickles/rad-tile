@@ -11,6 +11,8 @@ This is a lightweight tool for easily making radial tile patterns, like the [San
 ## medium todo:
 
 -   svg & png export
+-   paint with an image: tiles mask in an image
+-   paint palette: build a group of colors/images for tile color assignment, switch between them
 -   persistence for config + composition (local storage)
 -   info overlay: click an (i) to learn about what rad tile is (intent, usage, attribution, etc)
 -   disable internal anchors for starting / snapping (track hull, or angular saturation for each anchor)
@@ -34,7 +36,7 @@ This is a lightweight tool for easily making radial tile patterns, like the [San
     -   pinch to zoom
     -   mobile-friendly overlay
     -   button: complete free shape
--   paint palette: build a group of colors for tile color assignment
+-   apply color to fill/stroke (different stroke colors)
 -   pan + recenter canvas position
 -   equilateral mode (during add, for quad & tri)
 -   undo / redo
