@@ -20,6 +20,10 @@
     padding-top: 0.1rem;
 }
 
+.input {
+    @apply p-2;
+}
+
 .input:focus {
     @apply outline-none ring-0;
 }
