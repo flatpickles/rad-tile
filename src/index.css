@@ -3,9 +3,14 @@
 @tailwind utilities;
 
 :root {
-    font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+    font-family: system-ui, Arial, sans-serif;
     line-height: 1.5;
     font-weight: 400;
+}
+
+.header-title {
+    @apply text-3xl font-bold;
+    font-family: 'Courier New', monospace;
 }
 
 .btn {

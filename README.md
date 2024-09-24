@@ -4,7 +4,7 @@ This is a lightweight tool for easily making radial tile patterns, like the [San
 
 ## short todo:
 
--   styling touch up: typography, theme colors, input UIs, cursor over canvas
+-   cursor over canvas
 -   improve TileRenderer (factor out direct manager dependency, perhaps)
 -   favicon
 
