@@ -6,5 +6,6 @@
 }
 
 .color-picker {
+    @apply cursor-pointer;
     scale: 3;
 }
