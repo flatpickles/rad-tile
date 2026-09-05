@@ -2,6 +2,19 @@
 
 This is a lightweight tool for easily making radial tile patterns, like the [Sandbox logo](https://sandbox.is). Work in progress, project planning below!
 
+## Development
+
+Use Node.js 24 (also selected for Vercel builds by `engines.node` in `package.json`):
+
+```sh
+nvm install
+nvm use
+npm ci
+npm run dev
+```
+
+Run `npm run lint` and `npm run build` before pushing changes. Use `npm run preview` to check the production build locally.
+
 ## short todo:
 
 -   reset everything on clear (bg color, tile inset, UIs etc)
